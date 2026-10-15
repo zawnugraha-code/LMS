@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+  --font-display: "Newsreader Variable", Georgia, serif;
+  --font-sans: "Public Sans Variable", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-paper: #F6F3EC;
+  --color-surface: #FCFBF7;
+  --color-ink: #1C1B18;
+  --color-ink-muted: #5B574E;
+  --color-line: #DAD4C5;
+  --color-brand: #14513F;
+  --color-brand-tint: #E4EDE8;
+  --color-signal: #BF3A21;
+  --color-signal-tint: #F6E4DE;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+}
+
+/* Academic Editorial System Variables */
+:root {
+  --paper: #F6F3EC;
+  --surface: #FCFBF7;
+  --ink: #1C1B18;
+  --ink-muted: #5B574E;
+  --line: #DAD4C5;
+  --brand: #14513F;
+  --brand-tint: #E4EDE8;
+  --signal: #BF3A21;
+  --signal-tint: #F6E4DE;
+}
+
+.dark {
+  --paper: #151411;
+  --surface: #1C1B17;
+  --ink: #ECE8DD;
+  --ink-muted: #A39E90;
+  --line: #38352D;
+  --brand: #6DBF9F;
+  --brand-tint: #1C2E27;
+  --signal: #F07A62;
+  --signal-tint: #331A15;
+}
+
+/* Editorial Typography & Rules */
+@layer base {
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  code, pre, kbd, samp, .mono {
+    font-family: var(--font-mono);
+  }
+
+  table {
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Micro-transitions: strictly 150ms on color/border only */
+.transition-editorial {
+  transition-property: color, background-color, border-color, opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
