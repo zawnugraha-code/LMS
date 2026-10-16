@@ -512,10 +512,31 @@ class CanonicalStudentSeeder extends Seeder
             Meeting::where('class_id', $class->id)->delete();
             for ($w = 1; $w <= 14; $w++) {
                 $meetingDate = now()->subWeeks(14 - $w)->startOfWeek()->addHours(8);
+                $meetingTitle = "Pertemuan {$w}: Silabus {$data['code']}";
+                if ($data['code'] === 'IF2101') {
+                    $canonicalMeetingTitles = [
+                        1 => 'Pengenalan Mata Kuliah dan RPS',
+                        2 => 'Konsep Dasar Pemrograman Berorientasi Objek',
+                        3 => 'Struktur Data dan Array',
+                        4 => 'Fungsi dan Modularitas',
+                        5 => 'Class dan Object',
+                        6 => 'Inheritance dan Polymorphism',
+                        7 => 'Interface dan Abstract Class',
+                        8 => 'Exception Handling',
+                        9 => 'File Handling',
+                        10 => 'Database dan ORM',
+                        11 => 'Aplikasi Web dengan Laravel',
+                        12 => 'Studi Kasus & Presentasi',
+                        13 => 'Aplikasi Web dengan Laravel',
+                        14 => 'Review Proyek Akhir & Penutupan Perkuliahan',
+                    ];
+                    $meetingTitle = $canonicalMeetingTitles[$w] ?? $meetingTitle;
+                }
+
                 $meeting = Meeting::create([
                     'class_id' => $class->id,
                     'week' => $w,
-                    'title' => "Pertemuan {$w}: Silabus {$data['code']}",
+                    'title' => $meetingTitle,
                     'description' => "Materi perkuliahan minggu ke-{$w} untuk {$data['name']}.",
                     'date' => $meetingDate->toDateString(),
                     'start_time' => $data['start_time'] ?? '08:00',
@@ -577,22 +598,58 @@ class CanonicalStudentSeeder extends Seeder
                 ]);
 
                 // Attendance session per meeting
+                $isSessionActive = ($w === 13 && ! $isLocked);
                 $attSession = AttendanceSession::create([
                     'meeting_id' => $meeting->id,
-                    'qr_secret' => Str::random(32),
+                    'qr_secret' => ($data['code'] === 'IF2101' && $w === 13) ? 'QR-IF2101-W13' : Str::random(32),
                     'opened_at' => $meetingDate,
                     'closed_at' => $meetingDate->copy()->addHours(2),
-                    'is_active' => $w <= 7 && ! $isLocked,
+                    'is_active' => $isSessionActive,
                 ]);
 
-                if ($w <= 7 && ! $isLocked) {
-                    AttendanceLog::create([
-                        'attendance_session_id' => $attSession->id,
-                        'user_id' => $studentArya->id,
-                        'status' => 'present',
-                        'method' => 'qr',
-                        'checked_at' => $meetingDate->copy()->addMinutes(15),
-                    ]);
+                if (! $isLocked) {
+                    if ($data['code'] === 'IF2101') {
+                        if ($w === 4) {
+                            AttendanceLog::create([
+                                'attendance_session_id' => $attSession->id,
+                                'user_id' => $studentArya->id,
+                                'status' => 'excused',
+                                'method' => 'manual',
+                                'checked_at' => $meetingDate->copy()->addMinutes(10),
+                                'notes' => 'Surat dokter terverifikasi BAAK',
+                            ]);
+                        } elseif ($w === 12) {
+                            AttendanceLog::create([
+                                'attendance_session_id' => $attSession->id,
+                                'user_id' => $studentArya->id,
+                                'status' => 'absent',
+                                'method' => 'manual',
+                                'checked_at' => $meetingDate->copy()->addMinutes(30),
+                                'notes' => 'Tanpa konfirmasi kehadiran / surat izin',
+                            ]);
+                        } elseif ($w <= 11) {
+                            AttendanceLog::create([
+                                'attendance_session_id' => $attSession->id,
+                                'user_id' => $studentArya->id,
+                                'status' => 'present',
+                                'method' => 'qr',
+                                'checked_at' => $meetingDate->copy()->addMinutes(5),
+                                'notes' => 'Tepat waktu',
+                            ]);
+                        }
+                    } else {
+                        // Other courses: seed attendance logs up to week 7
+                        if ($w <= 7) {
+                            AttendanceLog::create([
+                                'attendance_session_id' => $attSession->id,
+                                'user_id' => $studentArya->id,
+                                'status' => ($w === 7 && $data['code'] === 'IF2104') ? 'excused' : 'present',
+                                'method' => 'qr',
+                                'checked_at' => $meetingDate->copy()->addMinutes(15),
+                                'notes' => 'Tepat waktu',
+                            ]);
+                        }
+                    }
                 }
             }
         }

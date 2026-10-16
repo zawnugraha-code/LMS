@@ -3,6 +3,7 @@
 use App\Http\Controllers\AcademicActionController;
 use App\Http\Controllers\AiCopilotController;
 use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DemoAuthController;
@@ -55,7 +56,10 @@ Route::get('/app/assignments/{assignment}/submit', [AssignmentController::class,
 Route::get('/app/assignments/{assignment}/download', [AssignmentController::class, 'downloadAttachment'])->name('assignments.download');
 Route::get('/app/quizzes/{quiz}/attempt', [AssignmentController::class, 'attemptQuiz'])->name('quizzes.attempt');
 Route::post('/app/quizzes/{quiz}/attempt', [AssignmentController::class, 'submitQuiz'])->name('quizzes.submit_attempt');
-Route::get('/app/attendance', [DashboardController::class, 'attendance'])->name('app.attendance');
+Route::get('/app/attendance', [AttendanceController::class, 'index'])->name('app.attendance');
+Route::post('/app/attendance/check-in/qr', [AttendanceController::class, 'checkInQr'])->name('attendance.check_in.qr');
+Route::post('/app/attendance/check-in/code', [AttendanceController::class, 'checkInCode'])->name('attendance.check_in.code');
+Route::post('/app/attendance/permit', [AttendanceController::class, 'submitPermit'])->name('attendance.permit');
 Route::get('/app/grades', [DashboardController::class, 'grades'])->name('app.grades');
 Route::get('/app/materials', [MaterialController::class, 'index'])->name('app.materials');
 Route::get('/app/materials/{material}/view', [MaterialController::class, 'view'])->name('app.materials.view');

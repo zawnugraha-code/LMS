@@ -71,23 +71,21 @@ class CourseService
             // Total meetings (typically 14)
             $totalMeetings = $class->meetings->count() > 0 ? $class->meetings->count() : 14;
 
-            // Completed meetings: meetings where material is completed or attendance was recorded
-            $completedMeetings = 0;
-            foreach ($class->meetings as $meeting) {
-                $hasCompleted = $meeting->materials->contains(function ($mat) {
-                    $prog = $mat->progress->first();
-
-                    return $prog && $prog->status === 'completed';
-                });
-                $hasAttendance = $meeting->attendanceSession && $meeting->attendanceSession->logs->where('status', 'present')->isNotEmpty();
-                if ($hasCompleted || $hasAttendance) {
-                    $completedMeetings++;
-                }
-            }
-
-            // Fallback to progress_meetings setting if meetings were not fully populated
-            if ($completedMeetings === 0 && isset($class->settings['progress_meetings'])) {
+            // Completed meetings: from settings['progress_meetings'] or completed materials count
+            if (isset($class->settings['progress_meetings']) && $class->settings['progress_meetings'] !== null) {
                 $completedMeetings = (int) $class->settings['progress_meetings'];
+            } else {
+                $completedMeetings = 0;
+                foreach ($class->meetings as $meeting) {
+                    $hasCompleted = $meeting->materials->contains(function ($mat) {
+                        $prog = $mat->progress->first();
+
+                        return $prog && $prog->status === 'completed';
+                    });
+                    if ($hasCompleted) {
+                        $completedMeetings++;
+                    }
+                }
             }
 
             $percentage = $totalMeetings > 0 ? (int) round(($completedMeetings / $totalMeetings) * 100) : 0;
