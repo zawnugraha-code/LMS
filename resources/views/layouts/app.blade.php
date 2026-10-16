@@ -8,9 +8,9 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1A2E5E">
 
-    <!-- Theme initialization (No flicker) -->
+    <!-- Theme initialization (Default Light Theme as per Arunika design guidelines) -->
     <script>
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        if (localStorage.getItem('theme') === 'dark') {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
