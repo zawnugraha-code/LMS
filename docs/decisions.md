@@ -112,3 +112,48 @@
 **Konteks**: Project di-develop di folder OneDrive yang memiliki restriksi `is_writable()`.
 **Keputusan**: Gunakan Windows junction link dari `bootstrap/cache` ke `C:\temp\arunika-cache`.
 **Alasan**: OneDrive menambahkan deny ACL pada subdirectory yang menyebabkan PHP `is_writable()` return false meskipun file write berhasil. Junction ke folder non-OneDrive menyelesaikan masalah.
+
+---
+
+## D10: Architecture Wiring — Service Layer + Domain Events + Blade/Alpine
+
+**Tanggal**: 2026-10-16
+**Konteks**: Menghubungkan 8 halaman Mahasiswa dari dummy ke fitur database riil tanpa mengubah visual.
+**Keputusan**: Gunakan arsitektur Service Layer terpusat + Domain Events/Listeners + Controller Blade + Alpine.js.
+**Alasan**: Konsisten dengan gaya implementasi yang sudah ada di repo saat ini (`Controller + Blade + Alpine.js`). Tidak mencampur framework baru yang tidak konsisten. Semua kalkulasi bisnis (IPK, progres, rubrik, absensi) berada di Service Layer, bukan di Blade.
+
+---
+
+## D11: Global Semester State — Session + User Preference
+
+**Tanggal**: 2026-10-16
+**Konteks**: Dropdown semester di Beranda, Mata Kuliah, dan Nilai harus saling sinkron.
+**Keputusan**: Simpan `active_term_id` di Session pengguna dan persistensi ke `user_preferences`.
+**Alasan**: Ketika mahasiswa berpindah semester di halaman Mata Kuliah, halaman Nilai dan Beranda langsung mencerminkan data semester terpilih yang sama.
+
+---
+
+## D12: Presensi QR Dinamis — HMAC-SHA256 Time Window (15 Detik)
+
+**Tanggal**: 2026-10-16
+**Konteks**: Mahasiswa check-in presensi harus aman dari titip absen/screenshot QR.
+**Keputusan**: Gunakan token HMAC bertanda waktu dengan rotasi tiap 15 detik + input 6 digit manual fallback.
+**Alasan**: Mencegah screenshot dishare ke grup chat. Server memverifikasi token dan timestamp window ($\pm 1$ window toleransi).
+
+---
+
+## D13: Terminologi Gamifikasi — XP (Experience Points)
+
+**Tanggal**: 2026-10-16
+**Konteks**: Standardisasi istilah gamifikasi antara "XP" atau "VP".
+**Keputusan**: Standarkan pada **XP** (*Experience Points*) dan lokalisasikan melalui `lang/id/gamification.php` dan `lang/en/gamification.php`.
+**Alasan**: XP sudah menjadi istilah universal dalam kurikulum gamifikasi edukasi dan konsisten dengan tabel `xp_ledgers` yang telah ada di database.
+
+---
+
+## D14: UI Freeze Enforcement — Zero Visual Change
+
+**Tanggal**: 2026-10-16
+**Konteks**: Seluruh antarmuka 8 halaman mahasiswa sudah disetujui desainnya dan dilarang berubah.
+**Keputusan**: Struktur HTML, kelas Tailwind, warna, font, dan jarak tidak boleh diubah. Hanya hardcode yang diganti variabel/query dan atribut interaktivitas (`x-on:`, action form, route).
+**Alasan**: Melindungi integritas visual fidelity 1:1 yang telah dicapai pada tag `ui-freeze-v1`.

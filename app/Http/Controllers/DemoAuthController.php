@@ -58,4 +58,16 @@ class DemoAuthController extends Controller
 
         return redirect()->back()->with('demo_submitted', true)->with('success', 'Terima kasih! Permintaan demo institusi Anda telah kami terima. Tim konsultan Arunika akan segera menghubungi Anda.');
     }
+
+    /**
+     * Log out the authenticated user.
+     */
+    public function logout(Request $request): RedirectResponse
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('marketing.home');
+    }
 }

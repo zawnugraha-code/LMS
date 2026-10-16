@@ -8,12 +8,52 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1A2E5E">
 
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+    <!-- Theme initialization (No flicker) -->
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="h-full bg-canvas text-text font-sans antialiased selection:bg-accent selection:text-white" x-data="{ aiDrawerOpen: false, aiPrompt: '', aiResponse: '', aiLoading: false, socraticMode: true, mobileSidebar: false }">
+<body 
+    class="h-full bg-canvas text-text font-sans antialiased selection:bg-accent selection:text-white" 
+    x-data="{ 
+        aiDrawerOpen: false, 
+        aiPrompt: '', 
+        aiResponse: '', 
+        aiLoading: false, 
+        socraticMode: true, 
+        mobileSidebar: false,
+        searchModalOpen: false,
+        searchQuery: '',
+        searchResults: null,
+        searchLoading: false,
+        notificationsOpen: false,
+        profileDropdownOpen: false,
+        sidebarProfileOpen: false,
+        unreadCount: {{ (int) ($unreadNotificationsCount ?? 2) }},
+        performSearch() {
+            if (this.searchQuery.trim().length < 2) {
+                this.searchResults = null;
+                return;
+            }
+            this.searchLoading = true;
+            fetch('{{ route('app.search') }}?q=' + encodeURIComponent(this.searchQuery))
+                .then(res => res.json())
+                .then(data => {
+                    this.searchResults = data;
+                    this.searchLoading = false;
+                })
+                .catch(() => { this.searchLoading = false; });
+        }
+    }"
+    @keydown.window.prevent.cmd.k="searchModalOpen = true"
+    @keydown.window.prevent.ctrl.k="searchModalOpen = true"
+>
 
     <!-- App Main Layout Container -->
     <div class="min-h-full flex flex-col md:flex-row">
@@ -130,8 +170,11 @@
             </div>
 
             <!-- Profil Pengguna Sidebar Bawah (Persis Gambar Acuan) -->
-            <div class="p-3 border-t border-white/10 bg-navy-900/60">
-                <div class="flex items-center justify-between gap-2 px-1">
+            <div class="p-3 border-t border-white/10 bg-navy-900/60 relative">
+                <div 
+                    @click="sidebarProfileOpen = !sidebarProfileOpen" 
+                    class="flex items-center justify-between gap-2 px-1 cursor-pointer select-none hover:bg-white/5 p-1 rounded-[6px] transition-colors"
+                >
                     <div class="flex items-center gap-2.5 min-w-0">
                         <x-ui.avatar 
                             :src="Auth::user()?->isStudent() ? '/images/avatar-arya.jpg' : null" 
@@ -144,6 +187,27 @@
                         </div>
                     </div>
                     <x-icon name="chevron-down" :size="16" class="text-white/60 shrink-0" />
+                </div>
+
+                <!-- Popover Menu Sidebar Bawah -->
+                <div 
+                    x-show="sidebarProfileOpen" 
+                    @click.outside="sidebarProfileOpen = false"
+                    x-transition.opacity.duration.150ms
+                    class="absolute bottom-full mb-2 inset-x-2 bg-surface text-text rounded-[8px] border border-line shadow-lg p-1.5 space-y-1 text-xs z-50"
+                    style="display: none;"
+                >
+                    <a href="{{ route('app.settings') }}" class="flex items-center gap-2 px-2.5 py-1.5 rounded-[4px] hover:bg-canvas text-text transition-colors">
+                        <x-icon name="settings" :size="14" class="text-text-muted" />
+                        <span>Pengaturan</span>
+                    </a>
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[4px] hover:bg-rose-50 text-danger transition-colors text-left cursor-pointer">
+                            <x-icon name="log-out" :size="14" class="text-danger" />
+                            <span>Keluar</span>
+                        </button>
+                    </form>
                 </div>
             </div>
         </aside>
@@ -168,34 +232,127 @@
 
                 <div class="flex items-center gap-4">
                     <!-- Search Input (Persis Gambar Acuan) -->
-                    <div class="relative hidden sm:block">
+                    <div class="relative hidden sm:block cursor-pointer" @click="searchModalOpen = true">
                         <input 
                             type="text" 
+                            readonly
                             placeholder="Cari materi, tugas, atau mata kuliah..." 
-                            class="w-72 h-8 pl-8 pr-3 rounded-[6px] bg-canvas border border-line text-text text-xs placeholder:text-text-subtle focus:outline-none focus:border-accent focus:bg-surface transition-colors"
+                            class="w-72 h-8 pl-8 pr-3 rounded-[6px] bg-canvas border border-line text-text text-xs placeholder:text-text-subtle focus:outline-none focus:border-accent focus:bg-surface transition-colors cursor-pointer"
                         >
                         <x-icon name="search" :size="14" class="text-text-subtle absolute left-2.5 top-2" />
                     </div>
 
-                    <!-- Notifikasi Lonceng dengan Badge Angka 2 (Persis Gambar Acuan) -->
-                    <div class="relative cursor-pointer p-1 text-text-muted hover:text-text transition-colors">
-                        <x-icon name="bell" :size="18" />
-                        <span class="absolute top-0 right-0 w-3.5 h-3.5 bg-danger text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                            2
-                        </span>
+                    <!-- Notifikasi Lonceng dengan Dropdown Real-time (Persis Gambar Acuan) -->
+                    <div class="relative">
+                        <button 
+                            @click="notificationsOpen = !notificationsOpen" 
+                            @click.outside="notificationsOpen = false"
+                            class="relative cursor-pointer p-1 text-text-muted hover:text-text transition-colors block"
+                            title="Notifikasi"
+                        >
+                            <x-icon name="bell" :size="18" />
+                            <span 
+                                x-show="unreadCount > 0" 
+                                x-text="unreadCount" 
+                                class="absolute top-0 right-0 w-3.5 h-3.5 bg-danger text-white text-[9px] font-bold rounded-full flex items-center justify-center"
+                            >
+                                {{ $unreadNotificationsCount ?? 2 }}
+                            </span>
+                        </button>
+
+                        <!-- Dropdown Notifikasi -->
+                        <div 
+                            x-show="notificationsOpen" 
+                            x-transition.opacity.duration.150ms 
+                            class="absolute right-0 mt-2 w-80 bg-surface border border-line rounded-[8px] shadow-lg py-2 z-50 text-xs" 
+                            style="display: none;"
+                        >
+                            <div class="px-3.5 py-1.5 border-b border-line flex items-center justify-between">
+                                <span class="font-semibold text-text">Notifikasi</span>
+                                <form action="{{ route('notifications.mark_all_read') }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="text-[11px] text-primary hover:underline cursor-pointer">Tandai semua dibaca</button>
+                                </form>
+                            </div>
+                            <div class="max-h-72 overflow-y-auto divide-y divide-line/70">
+                                @forelse($recentNotifications ?? [] as $notif)
+                                    <div class="p-3 hover:bg-canvas transition-colors flex gap-2.5 {{ !$notif['is_read'] ? 'bg-blue-50/40' : '' }}">
+                                        <div class="mt-0.5 shrink-0 text-primary">
+                                            <x-icon :name="$notif['icon'] ?? 'bell'" :size="15" />
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <a href="{{ $notif['action_url'] ?? '#' }}" class="font-semibold text-text hover:text-primary truncate block leading-tight">
+                                                {{ $notif['title'] }}
+                                            </a>
+                                            <p class="text-[11px] text-text-muted mt-0.5 line-clamp-2 leading-relaxed">
+                                                {{ $notif['message'] }}
+                                            </p>
+                                            <span class="text-[10px] text-text-subtle mt-1 block">
+                                                {{ \App\Helpers\ArunikaDate::diffForHumans($notif['created_at']) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="p-4 text-center text-text-muted text-xs">
+                                        Belum ada notifikasi baru.
+                                    </div>
+                                @endforelse
+                            </div>
+                            <div class="px-3.5 pt-2 border-t border-line text-center">
+                                <a href="{{ route('app.notifications') }}" class="text-[11px] font-medium text-primary hover:underline">
+                                    Lihat semua notifikasi →
+                                </a>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- User Profile Topbar (Avatar + Nama + Chevron) -->
-                    <div class="flex items-center gap-2 pl-2 border-l border-line cursor-pointer" @click="aiDrawerOpen = true" title="Profil Pengguna & AI Tutor">
-                        <x-ui.avatar 
-                            :src="Auth::user()?->isStudent() ? '/images/avatar-arya.jpg' : null" 
-                            :name="Auth::user()?->name ?? 'Arya Pratama'" 
-                            :size="28" 
-                        />
-                        <span class="text-xs font-semibold text-text hidden sm:inline truncate max-w-[120px]">
-                            {{ Auth::user()?->name ?? 'Arya Pratama' }}
-                        </span>
-                        <x-icon name="chevron-down" :size="14" class="text-text-muted hidden sm:inline" />
+                    <!-- User Profile Topbar Dropdown (Avatar + Nama + Chevron) -->
+                    <div class="relative">
+                        <div 
+                            class="flex items-center gap-2 pl-2 border-l border-line cursor-pointer select-none" 
+                            @click="profileDropdownOpen = !profileDropdownOpen" 
+                            @click.outside="profileDropdownOpen = false"
+                            title="Menu Pengguna"
+                        >
+                            <x-ui.avatar 
+                                :src="Auth::user()?->isStudent() ? '/images/avatar-arya.jpg' : null" 
+                                :name="Auth::user()?->name ?? 'Arya Pratama'" 
+                                :size="28" 
+                            />
+                            <span class="text-xs font-semibold text-text hidden sm:inline truncate max-w-[120px]">
+                                {{ Auth::user()?->name ?? 'Arya Pratama' }}
+                            </span>
+                            <x-icon name="chevron-down" :size="14" class="text-text-muted hidden sm:inline" />
+                        </div>
+
+                        <!-- Dropdown Menu Profil -->
+                        <div 
+                            x-show="profileDropdownOpen" 
+                            x-transition.opacity.duration.150ms 
+                            class="absolute right-0 mt-2 w-52 bg-surface border border-line rounded-[8px] shadow-lg py-1.5 z-50 text-xs" 
+                            style="display: none;"
+                        >
+                            <div class="px-3 py-2 border-b border-line">
+                                <p class="font-semibold text-text truncate">{{ Auth::user()?->name ?? 'Arya Pratama' }}</p>
+                                <p class="text-[11px] text-text-muted truncate">{{ Auth::user()?->email ?? 'arya.pratama@student.unus.ac.id' }}</p>
+                            </div>
+                            <a href="{{ route('app.settings') }}" class="flex items-center gap-2 px-3 py-2 text-text hover:bg-canvas transition-colors">
+                                <x-icon name="user" :size="14" class="text-text-muted" />
+                                <span>Profil Saya</span>
+                            </a>
+                            <a href="{{ route('app.settings') }}" class="flex items-center gap-2 px-3 py-2 text-text hover:bg-canvas transition-colors">
+                                <x-icon name="settings" :size="14" class="text-text-muted" />
+                                <span>Pengaturan</span>
+                            </a>
+                            <div class="border-t border-line my-1"></div>
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full flex items-center gap-2 px-3 py-2 text-danger hover:bg-rose-50 transition-colors text-left cursor-pointer">
+                                    <x-icon name="log-out" :size="14" class="text-danger" />
+                                    <span>Keluar</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -390,6 +547,163 @@
             <span>Uji Peran: {{ Auth::user()?->role?->label() }}</span>
             <x-icon name="chevron-down" :size="12" class="text-text-muted" />
         </button>
+    </div>
+
+    <!-- ==========================================
+         GLOBAL SEARCH MODAL (Ctrl+K)
+         ========================================== -->
+    <div 
+        x-show="searchModalOpen" 
+        x-transition.opacity.duration.150ms 
+        class="fixed inset-0 bg-navy-950/40 backdrop-blur-xs z-50 flex items-start justify-center pt-16 sm:pt-24 px-4" 
+        style="display: none;"
+    >
+        <div 
+            @click.outside="searchModalOpen = false"
+            class="w-full max-w-xl bg-surface border border-line rounded-[10px] shadow-lg overflow-hidden flex flex-col text-xs"
+        >
+            <!-- Search Input Header -->
+            <div class="p-3.5 border-b border-line flex items-center gap-3">
+                <x-icon name="search" :size="18" class="text-text-subtle shrink-0" />
+                <input 
+                    type="text" 
+                    x-model="searchQuery" 
+                    @input.debounce.250ms="performSearch()" 
+                    x-ref="searchInput"
+                    x-effect="if (searchModalOpen) { $nextTick(() => $refs.searchInput.focus()) }"
+                    placeholder="Ketik untuk mencari mata kuliah, materi, tugas, atau diskusi..."
+                    class="flex-1 bg-transparent border-0 outline-none text-text placeholder:text-text-subtle text-xs"
+                >
+                <button 
+                    @click="searchModalOpen = false" 
+                    class="px-1.5 py-0.5 rounded-[4px] bg-canvas border border-line text-[10px] font-mono text-text-subtle hover:text-text cursor-pointer"
+                >
+                    ESC
+                </button>
+            </div>
+
+            <!-- Search Results Body -->
+            <div class="max-h-96 overflow-y-auto p-2">
+                <!-- Loading State -->
+                <div x-show="searchLoading" class="p-6 text-center text-text-muted flex items-center justify-center gap-2">
+                    <span class="inline-block w-2 h-2 rounded-full bg-primary animate-ping"></span>
+                    <span>Mencari data akademik...</span>
+                </div>
+
+                <!-- Empty State (No query yet) -->
+                <div x-show="!searchLoading && !searchResults && !searchQuery.trim()" class="p-6 text-center text-text-muted space-y-1">
+                    <p class="font-medium text-text">Pencarian Terpadu Arunika</p>
+                    <p class="text-[11px]">Temukan materi kuliah, tugas, ujian, dan forum diskusi kelas Anda dengan cepat.</p>
+                </div>
+
+                <!-- No Results Found -->
+                <div x-show="!searchLoading && searchResults && searchResults.total === 0" class="p-6 text-center text-text-muted space-y-1">
+                    <p class="font-medium text-text">Tidak ada hasil ditemukan</p>
+                    <p class="text-[11px]">Tidak ada mata kuliah, materi, atau tugas yang cocok dengan kata kunci tersebut.</p>
+                </div>
+
+                <!-- Results Grouped -->
+                <div x-show="!searchLoading && searchResults && searchResults.total > 0" class="space-y-3 p-1">
+                    <!-- 1. Mata Kuliah -->
+                    <template x-if="searchResults.courses && searchResults.courses.length > 0">
+                        <div>
+                            <div class="px-2 py-1 text-[10px] font-semibold text-text-subtle uppercase tracking-wider">Mata Kuliah</div>
+                            <div class="space-y-0.5">
+                                <template x-for="item in searchResults.courses" :key="item.title">
+                                    <a :href="item.url" @click="searchModalOpen = false" class="flex items-center justify-between p-2 rounded-[6px] hover:bg-canvas transition-colors group">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-6 h-6 rounded-[4px] bg-blue-50 text-primary flex items-center justify-center shrink-0">
+                                                <x-icon name="book-open" :size="13" />
+                                            </div>
+                                            <div class="truncate">
+                                                <p class="font-medium text-text group-hover:text-primary truncate" x-text="item.title"></p>
+                                                <p class="text-[10px] text-text-muted truncate" x-text="item.subtitle"></p>
+                                            </div>
+                                        </div>
+                                        <span class="text-[10px] font-medium text-text-subtle px-1.5 py-0.5 rounded-[4px] bg-tile shrink-0" x-text="item.badge"></span>
+                                    </a>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- 2. Materi Pembelajaran -->
+                    <template x-if="searchResults.materials && searchResults.materials.length > 0">
+                        <div>
+                            <div class="px-2 py-1 text-[10px] font-semibold text-text-subtle uppercase tracking-wider">Materi Pembelajaran</div>
+                            <div class="space-y-0.5">
+                                <template x-for="item in searchResults.materials" :key="item.title">
+                                    <a :href="item.url" @click="searchModalOpen = false" class="flex items-center justify-between p-2 rounded-[6px] hover:bg-canvas transition-colors group">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-6 h-6 rounded-[4px] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                                                <x-icon name="folder-open" :size="13" />
+                                            </div>
+                                            <div class="truncate">
+                                                <p class="font-medium text-text group-hover:text-primary truncate" x-text="item.title"></p>
+                                                <p class="text-[10px] text-text-muted truncate" x-text="item.subtitle"></p>
+                                            </div>
+                                        </div>
+                                        <span class="text-[10px] font-medium text-text-subtle px-1.5 py-0.5 rounded-[4px] bg-tile shrink-0" x-text="item.badge"></span>
+                                    </a>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- 3. Tugas & Ujian -->
+                    <template x-if="searchResults.assignments && searchResults.assignments.length > 0">
+                        <div>
+                            <div class="px-2 py-1 text-[10px] font-semibold text-text-subtle uppercase tracking-wider">Tugas & Ujian</div>
+                            <div class="space-y-0.5">
+                                <template x-for="item in searchResults.assignments" :key="item.title">
+                                    <a :href="item.url" @click="searchModalOpen = false" class="flex items-center justify-between p-2 rounded-[6px] hover:bg-canvas transition-colors group">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-6 h-6 rounded-[4px] bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                                                <x-icon name="clipboard-list" :size="13" />
+                                            </div>
+                                            <div class="truncate">
+                                                <p class="font-medium text-text group-hover:text-primary truncate" x-text="item.title"></p>
+                                                <p class="text-[10px] text-text-muted truncate" x-text="item.subtitle"></p>
+                                            </div>
+                                        </div>
+                                        <span class="text-[10px] font-medium text-text-subtle px-1.5 py-0.5 rounded-[4px] bg-tile shrink-0" x-text="item.badge"></span>
+                                    </a>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- 4. Diskusi -->
+                    <template x-if="searchResults.discussions && searchResults.discussions.length > 0">
+                        <div>
+                            <div class="px-2 py-1 text-[10px] font-semibold text-text-subtle uppercase tracking-wider">Forum Diskusi</div>
+                            <div class="space-y-0.5">
+                                <template x-for="item in searchResults.discussions" :key="item.title">
+                                    <a :href="item.url" @click="searchModalOpen = false" class="flex items-center justify-between p-2 rounded-[6px] hover:bg-canvas transition-colors group">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="w-6 h-6 rounded-[4px] bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                                                <x-icon name="message-circle" :size="13" />
+                                            </div>
+                                            <div class="truncate">
+                                                <p class="font-medium text-text group-hover:text-primary truncate" x-text="item.title"></p>
+                                                <p class="text-[10px] text-text-muted truncate" x-text="item.subtitle"></p>
+                                            </div>
+                                        </div>
+                                        <span class="text-[10px] font-medium text-text-subtle px-1.5 py-0.5 rounded-[4px] bg-tile shrink-0" x-text="item.badge"></span>
+                                    </a>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Footer Hint -->
+            <div class="p-2 border-t border-line bg-canvas/50 px-3 flex items-center justify-between text-[10px] text-text-muted">
+                <span>Tekan <kbd class="font-mono bg-surface border border-line px-1 rounded">ESC</kbd> untuk menutup</span>
+                <span>Navigasi instan ke halaman terkait</span>
+            </div>
+        </div>
     </div>
 
     <!-- Script AI Copilot -->

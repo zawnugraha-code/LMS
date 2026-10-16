@@ -772,5 +772,10 @@ class DatabaseSeeder extends Seeder
             'status' => 'pending',
             'created_at' => Carbon::now()->subHours(6),
         ]);
+
+        // ==========================================
+        // 13. CANONICAL STUDENT PORTAL DATASET
+        // ==========================================
+        $this->call(CanonicalStudentSeeder::class);
     }
 }
