@@ -12,6 +12,7 @@ use App\Http\Controllers\GradeController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SettingController;
 use App\Models\Campus;
 use App\Models\Course;
 use App\Models\Cpl;
@@ -76,7 +77,12 @@ Route::post('/app/discussions/{thread}/replies', [DiscussionController::class, '
 Route::post('/app/discussions/{thread}/upvote', [DiscussionController::class, 'upvoteThread'])->name('app.discussions.upvote');
 Route::post('/app/discussions/replies/{reply}/upvote', [DiscussionController::class, 'upvoteReply'])->name('app.discussions.reply.upvote');
 Route::post('/app/discussions/replies/{reply}/solution', [DiscussionController::class, 'markSolution'])->name('app.discussions.reply.solution');
-Route::get('/app/settings', [DashboardController::class, 'settings'])->name('app.settings');
+Route::get('/app/settings', [SettingController::class, 'index'])->name('app.settings');
+Route::post('/app/settings/profile', [SettingController::class, 'updateProfile'])->name('app.settings.profile');
+Route::post('/app/settings/password', [SettingController::class, 'updatePassword'])->name('app.settings.password');
+Route::post('/app/settings/preferences', [SettingController::class, 'updatePreferences'])->name('app.settings.preferences');
+Route::post('/app/settings/support-ticket', [SettingController::class, 'submitSupportTicket'])->name('app.settings.support_ticket');
+Route::get('/app/settings/{section}', [SettingController::class, 'showSection'])->name('app.settings.section');
 Route::get('/app/notifications', [NotificationController::class, 'all'])->name('app.notifications');
 
 // 5. Global Search & Notifications APIs
