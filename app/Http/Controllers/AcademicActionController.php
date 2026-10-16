@@ -81,6 +81,11 @@ class AcademicActionController extends Controller
      */
     public function gradeSubmission(Request $request, Submission $submission): RedirectResponse
     {
+        $user = Auth::user();
+        if (! $user || (! $user->isLecturer() && ! $user->isCampusAdmin() && ! $user->isSuperAdmin())) {
+            abort(403, 'Hanya dosen pengampu atau administrator yang berwenang memberikan nilai tugas.');
+        }
+
         $request->validate([
             'score' => 'required|numeric|min:0|max:100',
             'feedback' => 'nullable|string|max:1000',
