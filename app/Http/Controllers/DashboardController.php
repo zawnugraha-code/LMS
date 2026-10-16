@@ -116,4 +116,221 @@ class DashboardController extends Controller
 
         return view('pages.app.dashboard', $data);
     }
+
+    /**
+     * Display the enrolled courses (Mata Kuliah) page.
+     */
+    public function courses(Request $request): View
+    {
+        if (! Auth::check()) {
+            $defaultUser = User::where('role', UserRole::Student)->first() ?? User::first();
+            if ($defaultUser) {
+                Auth::login($defaultUser);
+                if ($defaultUser->campus_id) {
+                    session(['active_campus_id' => $defaultUser->campus_id]);
+                }
+            }
+        }
+
+        $user = Auth::user();
+        $campus = $user?->campus ?? Campus::first();
+
+        $enrolledClasses = AcademicClass::with(['course', 'lecturer', 'meetings'])
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->get();
+
+        return view('pages.app.courses', [
+            'user' => $user,
+            'campus' => $campus,
+            'currentRole' => $user->role,
+            'enrolledClasses' => $enrolledClasses,
+        ]);
+    }
+
+    /**
+     * Display the assignments and exams (Tugas & Ujian) page.
+     */
+    public function assignments(Request $request): View
+    {
+        if (! Auth::check()) {
+            $defaultUser = User::where('role', UserRole::Student)->first() ?? User::first();
+            if ($defaultUser) {
+                Auth::login($defaultUser);
+                if ($defaultUser->campus_id) {
+                    session(['active_campus_id' => $defaultUser->campus_id]);
+                }
+            }
+        }
+
+        $user = Auth::user();
+        $campus = $user?->campus ?? Campus::first();
+
+        $enrolledClasses = AcademicClass::with(['course', 'lecturer'])
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->get();
+
+        $assignments = Assignment::with(['academicClass.course', 'submissions' => fn ($q) => $q->where('user_id', $user->id)])
+            ->whereHas('academicClass.enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->latest('due_at')
+            ->get();
+
+        $quizzes = Quiz::with(['academicClass.course', 'attempts'])
+            ->whereHas('academicClass.enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->get();
+
+        return view('pages.app.assignments', [
+            'user' => $user,
+            'campus' => $campus,
+            'currentRole' => $user->role,
+            'enrolledClasses' => $enrolledClasses,
+            'assignments' => $assignments,
+            'quizzes' => $quizzes,
+        ]);
+    }
+
+    /**
+     * Display the student attendance (Presensi) page.
+     */
+    public function attendance(Request $request): View
+    {
+        if (! Auth::check()) {
+            $defaultUser = User::where('role', UserRole::Student)->first() ?? User::first();
+            if ($defaultUser) {
+                Auth::login($defaultUser);
+                if ($defaultUser->campus_id) {
+                    session(['active_campus_id' => $defaultUser->campus_id]);
+                }
+            }
+        }
+
+        $user = Auth::user();
+        $campus = $user?->campus ?? Campus::first();
+
+        $enrolledClasses = AcademicClass::with(['course', 'lecturer', 'meetings.attendanceSession.logs' => fn ($q) => $q->where('user_id', $user->id)])
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->get();
+
+        return view('pages.app.attendance', [
+            'user' => $user,
+            'campus' => $campus,
+            'currentRole' => $user->role,
+            'enrolledClasses' => $enrolledClasses,
+        ]);
+    }
+
+    /**
+     * Display the student grades (Nilai) page.
+     */
+    public function grades(Request $request): View
+    {
+        if (! Auth::check()) {
+            $defaultUser = User::where('role', UserRole::Student)->first() ?? User::first();
+            if ($defaultUser) {
+                Auth::login($defaultUser);
+                if ($defaultUser->campus_id) {
+                    session(['active_campus_id' => $defaultUser->campus_id]);
+                }
+            }
+        }
+
+        $user = Auth::user();
+        $campus = $user?->campus ?? Campus::first();
+
+        $enrolledClasses = AcademicClass::with(['course', 'lecturer', 'assignments', 'quizzes'])
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->get();
+
+        return view('pages.app.grades', [
+            'user' => $user,
+            'campus' => $campus,
+            'currentRole' => $user->role,
+            'enrolledClasses' => $enrolledClasses,
+        ]);
+    }
+
+    /**
+     * Display the student learning materials (Materi Pembelajaran) page.
+     */
+    public function materials(Request $request): View
+    {
+        if (! Auth::check()) {
+            $defaultUser = User::where('role', UserRole::Student)->first() ?? User::first();
+            if ($defaultUser) {
+                Auth::login($defaultUser);
+                if ($defaultUser->campus_id) {
+                    session(['active_campus_id' => $defaultUser->campus_id]);
+                }
+            }
+        }
+
+        $user = Auth::user();
+        $campus = $user?->campus ?? Campus::first();
+
+        $enrolledClasses = AcademicClass::with(['course', 'lecturer', 'meetings.materials'])
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->get();
+
+        return view('pages.app.materials', [
+            'user' => $user,
+            'campus' => $campus,
+            'currentRole' => $user->role,
+            'enrolledClasses' => $enrolledClasses,
+        ]);
+    }
+
+    /**
+     * Display the student discussions (Diskusi) page.
+     */
+    public function discussions(Request $request): View
+    {
+        if (! Auth::check()) {
+            $defaultUser = User::where('role', UserRole::Student)->first() ?? User::first();
+            if ($defaultUser) {
+                Auth::login($defaultUser);
+                if ($defaultUser->campus_id) {
+                    session(['active_campus_id' => $defaultUser->campus_id]);
+                }
+            }
+        }
+
+        $user = Auth::user();
+        $campus = $user?->campus ?? Campus::first();
+
+        $enrolledClasses = AcademicClass::with(['course', 'lecturer'])
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->get();
+
+        return view('pages.app.discussions', [
+            'user' => $user,
+            'campus' => $campus,
+            'currentRole' => $user->role,
+            'enrolledClasses' => $enrolledClasses,
+        ]);
+    }
+
+    /**
+     * Display the student settings (Pengaturan) page.
+     */
+    public function settings(Request $request): View
+    {
+        if (! Auth::check()) {
+            $defaultUser = User::where('role', UserRole::Student)->first() ?? User::first();
+            if ($defaultUser) {
+                Auth::login($defaultUser);
+                if ($defaultUser->campus_id) {
+                    session(['active_campus_id' => $defaultUser->campus_id]);
+                }
+            }
+        }
+
+        $user = Auth::user();
+        $campus = $user?->campus ?? Campus::first();
+
+        return view('pages.app.settings', [
+            'user' => $user,
+            'campus' => $campus,
+            'currentRole' => $user->role,
+        ]);
+    }
 }
+

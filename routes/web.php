@@ -36,8 +36,15 @@ Route::post('/demo/request', [DemoAuthController::class, 'storeDemoRequest'])->n
 // 3. Instant Role Switcher for Pair-Programming & Evaluation
 Route::get('/demo/login/{role}', [DemoAuthController::class, 'switchRole'])->name('demo.login');
 
-// 4. Arunika LMS Application Dashboard
+// 4. Arunika LMS Application Dashboard & Pages
 Route::get('/app', [DashboardController::class, 'index'])->name('app.dashboard');
+Route::get('/app/courses', [DashboardController::class, 'courses'])->name('app.courses');
+Route::get('/app/assignments', [DashboardController::class, 'assignments'])->name('app.assignments');
+Route::get('/app/attendance', [DashboardController::class, 'attendance'])->name('app.attendance');
+Route::get('/app/grades', [DashboardController::class, 'grades'])->name('app.grades');
+Route::get('/app/materials', [DashboardController::class, 'materials'])->name('app.materials');
+Route::get('/app/discussions', [DashboardController::class, 'discussions'])->name('app.discussions');
+Route::get('/app/settings', [DashboardController::class, 'settings'])->name('app.settings');
 
 // 5. Academic Actions
 Route::prefix('/app')->group(function () {
