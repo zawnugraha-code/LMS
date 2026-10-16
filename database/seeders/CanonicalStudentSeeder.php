@@ -11,6 +11,7 @@ use App\Models\Campus;
 use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Cpl;
+use App\Models\Cpmk;
 use App\Models\Curriculum;
 use App\Models\DiscussionCategory;
 use App\Models\DiscussionReply;
@@ -147,8 +148,8 @@ class CanonicalStudentSeeder extends Seeder
 
         // 4.2 Dosen Pengampu Sesuai Desain
         $lecturers = [
-            'budi' => User::firstOrCreate(['email' => 'budi.rahardjo@unus.ac.id'], [
-                'name' => 'Dr. Budi Rahardjo, S.T., M.Kom.',
+            'rudi' => User::firstOrCreate(['email' => 'rudi.rahardjo@unus.ac.id'], [
+                'name' => 'Dr. Rudi Rahardjo, S.T., M.Kom.',
                 'password' => $password,
                 'campus_id' => $campus->id,
                 'role' => UserRole::Lecturer,
@@ -163,35 +164,36 @@ class CanonicalStudentSeeder extends Seeder
                 'identifier' => '0015088203',
                 'avatar_path' => '/images/avatar-siti.jpg',
             ]),
-            'hendra' => User::firstOrCreate(['email' => 'hendra.gunawan@unus.ac.id'], [
-                'name' => 'Hendra Gunawan, Ph.D.',
+            'budi' => User::firstOrCreate(['email' => 'budi.raharjo@unus.ac.id'], [
+                'name' => 'Budi Raharjo, S.Kom., M.T.',
                 'password' => $password,
                 'campus_id' => $campus->id,
                 'role' => UserRole::Lecturer,
                 'identifier' => '0021037502',
+                'avatar_path' => '/images/avatar-budi.jpg',
             ]),
-            'dewi' => User::firstOrCreate(['email' => 'dewi.sartika@unus.ac.id'], [
-                'name' => 'Dewi Sartika, M.T.',
+            'andi' => User::firstOrCreate(['email' => 'andi.saputra@unus.ac.id'], [
+                'name' => 'Andi Saputra, S.T., M.Eng.',
                 'password' => $password,
                 'campus_id' => $campus->id,
                 'role' => UserRole::Lecturer,
                 'identifier' => '0018118601',
-                'avatar_path' => '/images/avatar-dewi.jpg',
             ]),
-            'fauzi' => User::firstOrCreate(['email' => 'ahmad.fauzi@unus.ac.id'], [
-                'name' => 'Ahmad Fauzi, M.Kom.',
+            'dewi' => User::firstOrCreate(['email' => 'dewi.lestari@unus.ac.id'], [
+                'name' => 'Dewi Lestari, S.Kom., M.T.',
                 'password' => $password,
                 'campus_id' => $campus->id,
                 'role' => UserRole::Lecturer,
                 'identifier' => '0029048902',
-                'avatar_path' => '/images/avatar-fajar.jpg',
+                'avatar_path' => '/images/avatar-dewi.jpg',
             ]),
-            'rina' => User::firstOrCreate(['email' => 'rina.wulandari@unus.ac.id'], [
-                'name' => 'Dr. Ir. Rina Wulandari, M.Sc.',
+            'fajar' => User::firstOrCreate(['email' => 'fajar.nugroho@unus.ac.id'], [
+                'name' => 'Fajar Nugroho, S.Kom., M.Kom.',
                 'password' => $password,
                 'campus_id' => $campus->id,
                 'role' => UserRole::Lecturer,
                 'identifier' => '0008067301',
+                'avatar_path' => '/images/avatar-fajar.jpg',
             ]),
         ];
 
@@ -322,92 +324,166 @@ class CanonicalStudentSeeder extends Seeder
         $activeCoursesData = [
             [
                 'code' => 'IF2101',
-                'name' => 'Pemrograman Berorientasi Objek',
+                'name' => 'Pemrograman Berorientasi Objek & Desain Pola',
                 'credits' => 3,
-                'lecturer' => $lecturers['budi'],
+                'lecturer' => $lecturers['rudi'],
                 'day' => 'Senin',
                 'start_time' => '08:00',
-                'end_time' => '10:30',
-                'room' => 'Lab Komputer 2',
+                'end_time' => '10:00',
+                'room' => 'Lab Pemrograman',
                 'status' => 'enrolled',
                 'score' => 88.50,
                 'letter' => 'A',
+                'completed_meetings' => 7,
+                'description' => 'Mata kuliah ini memperdalam paradigma pemrograman berorientasi objek lanjutan, prinsip SOLID, Clean Code, dan implementasi berbagai Design Pattern (Creational, Structural, Behavioral) dalam pengembangan aplikasi enterprise.',
+                'cpmks' => [
+                    ['code' => 'CPMK-1', 'description' => 'Mampu menerapkan prinsip SOLID dan Clean Architecture dalam desain perangkat lunak.', 'weight' => 30],
+                    ['code' => 'CPMK-2', 'description' => 'Mampu merancang arsitektur aplikasi berbasis GoF Design Patterns.', 'weight' => 40],
+                    ['code' => 'CPMK-3', 'description' => 'Mampu mengimplementasikan refactoring dan automated unit testing.', 'weight' => 30],
+                ],
             ],
             [
                 'code' => 'IF2102',
-                'name' => 'Struktur Data & Algoritma',
+                'name' => 'Basis Data & Sistem Terdistribusi',
                 'credits' => 3,
                 'lecturer' => $lecturers['siti'],
                 'day' => 'Selasa',
-                'start_time' => '10:45',
-                'end_time' => '13:15',
-                'room' => 'Lab RPL',
+                'start_time' => '10:00',
+                'end_time' => '12:00',
+                'room' => 'Lab Basis Data',
                 'status' => 'enrolled',
                 'score' => 84.00,
                 'letter' => 'A-',
+                'completed_meetings' => 5,
+                'description' => 'Mempelajari pemodelan data relasional dan non-relasional, indeksing B-Tree, optimasi eksekusi query (EXPLAIN), transaksi ACID, konkurensi, replikasi data, sharding, dan arsitektur database terdistribusi.',
+                'cpmks' => [
+                    ['code' => 'CPMK-1', 'description' => 'Mampu merancang skema basis data terdistribusi dan normalisasi tingkat lanjut.', 'weight' => 35],
+                    ['code' => 'CPMK-2', 'description' => 'Mampu menganalisis dan mengoptimalkan performa query kompleks.', 'weight' => 35],
+                    ['code' => 'CPMK-3', 'description' => 'Mampu mengonfigurasi replikasi master-slave dan fault-tolerance.', 'weight' => 30],
+                ],
             ],
             [
                 'code' => 'IF2103',
-                'name' => 'Basis Data Lanjut',
+                'name' => 'Rancang Bangun Mini Core Banking System (OOP Principles)',
                 'credits' => 3,
-                'lecturer' => $lecturers['hendra'],
+                'lecturer' => $lecturers['budi'],
                 'day' => 'Rabu',
-                'start_time' => '13:30',
-                'end_time' => '16:00',
-                'room' => 'Lab Basis Data',
+                'start_time' => '08:00',
+                'end_time' => '10:00',
+                'room' => 'Lab Pemrograman',
                 'status' => 'enrolled',
                 'score' => 91.20,
                 'letter' => 'A',
+                'completed_meetings' => 6,
+                'description' => 'Penerapan komprehensif prinsip OOP dalam membangun simulasi sistem core banking berstandar industri: ledger akuntansi, validasi mutasi, event-driven architecture, dan compliance audit trail.',
+                'cpmks' => [
+                    ['code' => 'CPMK-1', 'description' => 'Mampu memodelkan modul akuntansi buku besar (general ledger) berbasis OOP.', 'weight' => 35],
+                    ['code' => 'CPMK-2', 'description' => 'Mampu menerapkan mekanisme locking dan konsistensi transaksi perbankan.', 'weight' => 35],
+                    ['code' => 'CPMK-3', 'description' => 'Mampu mengintegrasikan audit logging dan verifikasi integritas data.', 'weight' => 30],
+                ],
             ],
             [
                 'code' => 'IF2104',
-                'name' => 'Rekayasa Perangkat Lunak',
+                'name' => 'Jaringan Komputer',
                 'credits' => 3,
-                'lecturer' => $lecturers['dewi'],
+                'lecturer' => $lecturers['andi'],
                 'day' => 'Kamis',
-                'start_time' => '08:00',
-                'end_time' => '10:30',
-                'room' => 'R. 401',
+                'start_time' => '10:00',
+                'end_time' => '12:00',
+                'room' => 'Lab Jaringan',
                 'status' => 'enrolled',
                 'score' => 78.50,
                 'letter' => 'B+',
+                'completed_meetings' => 3,
+                'description' => 'Konsep dan protokol jaringan komputer, model OSI dan TCP/IP, IP addressing dan VLSM/CIDR, protokol routing (OSPF, BGP), transport layer (TCP/UDP), dan analisis packet trace dengan Wireshark.',
+                'cpmks' => [
+                    ['code' => 'CPMK-1', 'description' => 'Mampu merancang skema pengalamatan IP dan subnetting jaringan.', 'weight' => 30],
+                    ['code' => 'CPMK-2', 'description' => 'Mampu mengonfigurasi router, switch, dan protokol routing dinamis.', 'weight' => 40],
+                    ['code' => 'CPMK-3', 'description' => 'Mampu menganalisis paket data dan mendiagnosa gangguan jaringan.', 'weight' => 30],
+                ],
             ],
             [
                 'code' => 'IF2105',
-                'name' => 'Jaringan Komputer',
+                'name' => 'Arsitektur & Organisasi Komputer',
                 'credits' => 3,
-                'lecturer' => $lecturers['fauzi'],
+                'lecturer' => $lecturers['dewi'],
                 'day' => 'Jumat',
                 'start_time' => '08:00',
-                'end_time' => '10:30',
-                'room' => 'Lab Jaringan',
+                'end_time' => '10:00',
+                'room' => 'Lab Komputer',
                 'status' => 'enrolled',
                 'score' => 82.00,
                 'letter' => 'A-',
+                'completed_meetings' => 4,
+                'description' => 'Memahami struktur internal komputer digital: unit pengolah pusat (ALU & CU), hierarki memori (Cache, RAM, Virtual Memory), set instruksi mesin (ISA), pipelining processor, dan antarmuka I/O.',
+                'cpmks' => [
+                    ['code' => 'CPMK-1', 'description' => 'Mampu menjelaskan alur instruksi mesin fetch-decode-execute pada CPU.', 'weight' => 35],
+                    ['code' => 'CPMK-2', 'description' => 'Mampu menganalisis efisiensi hierarki cache dan latensi memori.', 'weight' => 35],
+                    ['code' => 'CPMK-3', 'description' => 'Mampu mengevaluasi performa throughput dengan teknik pipelining.', 'weight' => 30],
+                ],
             ],
             [
                 'code' => 'IF2106',
-                'name' => 'Kecerdasan Buatan',
+                'name' => 'Keamanan Sistem Informasi',
                 'credits' => 3,
-                'lecturer' => $lecturers['rina'],
-                'day' => null,
-                'start_time' => null,
-                'end_time' => null,
-                'room' => 'Online',
-                'status' => 'locked', // Akan Datang
+                'lecturer' => $lecturers['fajar'],
+                'day' => 'Jumat',
+                'start_time' => '10:00',
+                'end_time' => '12:00',
+                'room' => 'Lab Keamanan',
+                'status' => 'locked', // Akan Datang (Terkunci)
                 'score' => null,
                 'letter' => null,
+                'completed_meetings' => 0,
+                'description' => 'Prinsip kerahasiaan, integritas, ketersediaan (CIA Triad), kriptografi simetris dan asimetris, otentikasi multi-faktor, OWASP Top 10 web vulnerabilities, ethical hacking, dan manajemen insiden keamanan.',
+                'cpmks' => [
+                    ['code' => 'CPMK-1', 'description' => 'Mampu menganalisis ancaman keamanan sistem dan vektor kerentanan.', 'weight' => 35],
+                    ['code' => 'CPMK-2', 'description' => 'Mampu menerapkan teknik enkripsi dan hashing untuk proteksi data.', 'weight' => 35],
+                    ['code' => 'CPMK-3', 'description' => 'Mampu melakukan security assessment dan mitigasi OWASP Top 10.', 'weight' => 30],
+                ],
             ],
         ];
 
         $classes = [];
         foreach ($activeCoursesData as $data) {
-            $course = Course::firstOrCreate(
+            $course = Course::updateOrCreate(
                 ['code' => $data['code'], 'curriculum_id' => $curriculum->id],
-                ['name' => $data['name'], 'credits' => $data['credits'], 'semester' => 3]
+                [
+                    'name' => $data['name'],
+                    'credits' => $data['credits'],
+                    'semester' => 3,
+                    'description' => $data['description'],
+                    'syllabus' => [
+                        'bobot_penilaian' => [
+                            'tugas' => 25,
+                            'kuis' => 15,
+                            'presensi' => 10,
+                            'uts' => 25,
+                            'uas' => 25,
+                        ],
+                    ],
+                ]
             );
 
-            $class = AcademicClass::firstOrCreate(
+            // CPMKs
+            Cpmk::where('course_id', $course->id)->delete();
+            foreach ($data['cpmks'] as $cp) {
+                Cpmk::create([
+                    'course_id' => $course->id,
+                    'code' => $cp['code'],
+                    'description' => $cp['description'],
+                    'weight' => $cp['weight'],
+                ]);
+            }
+
+            $isLocked = ($data['status'] === 'locked');
+            $classSettings = [
+                'is_locked' => $isLocked,
+                'progress_meetings' => $data['completed_meetings'],
+                'start_date' => $isLocked ? now()->addDays(30)->toDateString() : now()->subMonths(2)->toDateString(),
+            ];
+
+            $class = AcademicClass::updateOrCreate(
                 ['course_id' => $course->id, 'term_id' => $term3->id, 'section' => 'IF-3A'],
                 [
                     'lecturer_id' => $data['lecturer']->id,
@@ -416,114 +492,81 @@ class CanonicalStudentSeeder extends Seeder
                     'end_time' => $data['end_time'],
                     'room' => $data['room'],
                     'capacity' => 40,
+                    'settings' => $classSettings,
                 ]
             );
 
             $classes[$data['code']] = $class;
 
-            if ($data['status'] !== 'locked') {
-                Enrollment::firstOrCreate(
-                    ['class_id' => $class->id, 'user_id' => $studentArya->id],
-                    [
-                        'status' => 'enrolled',
-                        'final_score' => $data['score'],
-                        'letter_grade' => $data['letter'],
-                    ]
-                );
-            }
-        }
-
-        // ==========================================
-        // 8. SILABUS & 14 MATERI KULIAH (IF2101)
-        // ==========================================
-        $classPbo = $classes['IF2101'];
-
-        // Pertemuan 1 s/d 14
-        for ($w = 1; $w <= 14; $w++) {
-            $meetingDate = now()->subWeeks(14 - $w)->startOfWeek()->addHours(8);
-            $meeting = Meeting::firstOrCreate(
-                ['class_id' => $classPbo->id, 'week' => $w],
+            Enrollment::updateOrCreate(
+                ['class_id' => $class->id, 'user_id' => $studentArya->id],
                 [
-                    'title' => "Pertemuan {$w}: Modul dan Praktikum PBO",
-                    'description' => "Pembahasan materi perkuliahan minggu ke-{$w}",
-                    'date' => $meetingDate->toDateString(),
-                    'start_time' => '08:00',
-                    'end_time' => '10:30',
-                    'mode' => 'offline',
-                    'is_published' => true,
+                    'status' => $isLocked ? 'upcoming' : 'enrolled',
+                    'final_score' => $data['score'],
+                    'letter_grade' => $data['letter'],
                 ]
             );
 
-            // Attendance session per meeting
-            $attSession = AttendanceSession::firstOrCreate(
-                ['meeting_id' => $meeting->id],
-                [
+            // 14 Pertemuan per Kelas
+            Meeting::where('class_id', $class->id)->delete();
+            for ($w = 1; $w <= 14; $w++) {
+                $meetingDate = now()->subWeeks(14 - $w)->startOfWeek()->addHours(8);
+                $meeting = Meeting::create([
+                    'class_id' => $class->id,
+                    'week' => $w,
+                    'title' => "Pertemuan {$w}: Silabus {$data['code']}",
+                    'description' => "Materi perkuliahan minggu ke-{$w} untuk {$data['name']}.",
+                    'date' => $meetingDate->toDateString(),
+                    'start_time' => $data['start_time'] ?? '08:00',
+                    'end_time' => $data['end_time'] ?? '10:00',
+                    'mode' => 'offline',
+                    'is_published' => true,
+                ]);
+
+                // Create a material for this meeting
+                $isCompleted = ($w <= $data['completed_meetings']);
+                $material = Material::create([
+                    'meeting_id' => $meeting->id,
+                    'title' => "Modul Perkuliahan Minggu ke-{$w}",
+                    'type' => ($w % 2 === 0) ? 'video' : 'document',
+                    'content' => "Ringkasan materi perkuliahan minggu ke-{$w} untuk mata kuliah {$data['name']}.",
+                    'order' => 1,
+                    'is_downloadable' => true,
+                ]);
+
+                MaterialProgress::create([
+                    'user_id' => $studentArya->id,
+                    'material_id' => $material->id,
+                    'status' => $isCompleted ? 'completed' : 'not_started',
+                    'watch_percentage' => $isCompleted ? 100 : 0,
+                    'completed_at' => $isCompleted ? now()->subDays(15 - $w) : null,
+                ]);
+
+                // Attendance session per meeting
+                $attSession = AttendanceSession::create([
+                    'meeting_id' => $meeting->id,
                     'qr_secret' => Str::random(32),
                     'opened_at' => $meetingDate,
                     'closed_at' => $meetingDate->copy()->addHours(2),
-                    'is_active' => $w <= 8,
-                ]
-            );
+                    'is_active' => $w <= 8 && ! $isLocked,
+                ]);
 
-            // Log presensi Arya Pratama (Minggu 1-8 hadir)
-            if ($w <= 8) {
-                AttendanceLog::firstOrCreate(
-                    ['attendance_session_id' => $attSession->id, 'user_id' => $studentArya->id],
-                    [
+                if ($w <= 8 && ! $isLocked) {
+                    AttendanceLog::create([
+                        'attendance_session_id' => $attSession->id,
+                        'user_id' => $studentArya->id,
                         'status' => 'present',
                         'method' => 'qr',
                         'checked_at' => $meetingDate->copy()->addMinutes(15),
-                    ]
-                );
+                    ]);
+                }
             }
         }
 
-        // Buat 14 materi dalam 3 bab untuk IF2101
-        $meeting1 = Meeting::where('class_id', $classPbo->id)->where('week', 1)->first();
-        $meeting2 = Meeting::where('class_id', $classPbo->id)->where('week', 2)->first();
-        $meeting3 = Meeting::where('class_id', $classPbo->id)->where('week', 3)->first();
-        $meeting4 = Meeting::where('class_id', $classPbo->id)->where('week', 4)->first();
+        $activeClassIds = array_map(fn ($c) => $c->id, array_values($classes));
+        AcademicClass::where('term_id', $term3->id)->whereNotIn('id', $activeClassIds)->delete();
 
-        $materialsData = [
-            // Bab 1
-            ['meeting' => $meeting1, 'title' => 'Konsep Dasar OOP', 'type' => 'document', 'order' => 1, 'status' => 'completed'],
-            ['meeting' => $meeting1, 'title' => 'Video Pembahasan OOP', 'type' => 'video', 'order' => 2, 'status' => 'completed'],
-            ['meeting' => $meeting1, 'title' => 'Studi Kasus dan Latihan', 'type' => 'link', 'order' => 3, 'status' => 'completed'],
-            // Bab 2
-            ['meeting' => $meeting2, 'title' => 'Singleton Pattern', 'type' => 'document', 'order' => 4, 'status' => 'completed'],
-            ['meeting' => $meeting2, 'title' => 'Factory Pattern', 'type' => 'document', 'order' => 5, 'status' => 'completed'],
-            ['meeting' => $meeting3, 'title' => 'Observer Pattern', 'type' => 'video', 'order' => 6, 'status' => 'in_progress'],
-            ['meeting' => $meeting3, 'title' => 'Implementasi Design Pattern', 'type' => 'pdf', 'order' => 7, 'status' => 'not_started'],
-            // Bab 3
-            ['meeting' => $meeting4, 'title' => 'MVC Architecture Modern', 'type' => 'document', 'order' => 8, 'status' => 'not_started'],
-            ['meeting' => $meeting4, 'title' => 'Dependency Injection', 'type' => 'video', 'order' => 9, 'status' => 'not_started'],
-            ['meeting' => $meeting4, 'title' => 'Service Container Deep Dive', 'type' => 'document', 'order' => 10, 'status' => 'not_started'],
-            ['meeting' => $meeting4, 'title' => 'Repository Pattern', 'type' => 'document', 'order' => 11, 'status' => 'not_started'],
-            ['meeting' => $meeting4, 'title' => 'Microservices Overview', 'type' => 'video', 'order' => 12, 'status' => 'not_started'],
-            ['meeting' => $meeting4, 'title' => 'Studi Kasus Arsitektur Skala Besar', 'type' => 'link', 'order' => 13, 'status' => 'not_started'],
-            ['meeting' => $meeting4, 'title' => 'Proyek Mini Aplikasi Kampus', 'type' => 'pdf', 'order' => 14, 'status' => 'not_started'],
-        ];
-
-        foreach ($materialsData as $m) {
-            $material = Material::firstOrCreate(
-                ['meeting_id' => $m['meeting']->id, 'title' => $m['title']],
-                [
-                    'type' => $m['type'],
-                    'content' => "Konten modul pembelajaran untuk {$m['title']}.",
-                    'order' => $m['order'],
-                    'is_downloadable' => true,
-                ]
-            );
-
-            MaterialProgress::updateOrCreate(
-                ['user_id' => $studentArya->id, 'material_id' => $material->id],
-                [
-                    'status' => $m['status'],
-                    'watch_percentage' => $m['status'] === 'completed' ? 100 : ($m['status'] === 'in_progress' ? 45 : 0),
-                    'completed_at' => $m['status'] === 'completed' ? now()->subDays(5) : null,
-                ]
-            );
-        }
+        $classPbo = $classes['IF2101'];
 
         // ==========================================
         // 9. TUGAS & UJIAN

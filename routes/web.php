@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AcademicActionController;
 use App\Http\Controllers\AiCopilotController;
+use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DemoAuthController;
 use App\Http\Controllers\NotificationController;
@@ -43,7 +44,9 @@ Route::post('/logout', [DemoAuthController::class, 'logout'])->name('logout');
 
 // 4. Arunika LMS Application Dashboard & Pages
 Route::get('/app', [DashboardController::class, 'index'])->name('app.dashboard');
-Route::get('/app/courses', [DashboardController::class, 'courses'])->name('app.courses');
+Route::get('/app/courses', [CourseController::class, 'index'])->name('app.courses');
+Route::get('/app/courses/{class}', [CourseController::class, 'show'])->name('app.courses.show');
+Route::get('/app/courses/{class}/classroom', [CourseController::class, 'classroom'])->name('app.courses.classroom');
 Route::get('/app/assignments', [DashboardController::class, 'assignments'])->name('app.assignments');
 Route::get('/app/attendance', [DashboardController::class, 'attendance'])->name('app.attendance');
 Route::get('/app/grades', [DashboardController::class, 'grades'])->name('app.grades');

@@ -64,4 +64,12 @@ class AcademicTermService
     {
         return Term::orderBy('start_date', 'desc')->get();
     }
+
+    /**
+     * Alias for getAllTerms.
+     */
+    public function getAvailableTerms(): Collection
+    {
+        return $this->getAllTerms();
+    }
 }

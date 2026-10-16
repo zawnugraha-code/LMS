@@ -77,4 +77,9 @@ class AcademicClass extends Model
     {
         return $this->hasMany(Quiz::class, 'class_id');
     }
+
+    public function isLocked(): bool
+    {
+        return (bool) ($this->settings['is_locked'] ?? false);
+    }
 }

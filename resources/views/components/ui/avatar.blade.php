@@ -16,7 +16,16 @@
         $initials = 'U';
     }
 
-    $sizeStyle = "width: {$size}px; height: {$size}px;";
+    $sizePx = match ($size) {
+        'xs' => 24,
+        'sm' => 28,
+        'md' => 32,
+        'lg' => 44,
+        'xl' => 56,
+        default => is_numeric($size) ? (int) $size : 32,
+    };
+
+    $sizeStyle = "width: {$sizePx}px; height: {$sizePx}px;";
 @endphp
 
 <div

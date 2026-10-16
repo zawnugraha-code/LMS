@@ -40,6 +40,14 @@ class ArunikaDate
     }
 
     /**
+     * Alias for format.
+     */
+    public static function formatDate($date, ?string $customFormat = null): string
+    {
+        return self::format($date, $customFormat);
+    }
+
+    /**
      * Format time according to user preference (e.g. 14:30).
      */
     public static function time($date): string
