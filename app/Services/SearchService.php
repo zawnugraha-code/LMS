@@ -33,7 +33,7 @@ class SearchService
             ->toArray();
 
         // 1. Courses
-        $courses = AcademicClass::with('course', 'lecturer')
+        $coursesQuery = AcademicClass::with('course', 'lecturer')
             ->whereIn('id', $enrolledClassIds)
             ->whereHas('course', function ($b) use ($q) {
                 $b->where('name', 'like', "%{$q}%")
@@ -48,6 +48,18 @@ class SearchService
                 'url' => route('app.courses'),
                 'icon' => 'book-open',
             ]);
+
+        $courses = $coursesQuery->toArray();
+
+        if (str_contains(strtolower($q), 'jadwal') || str_contains(strtolower($q), 'kalender') || str_contains(strtolower($q), 'schedule')) {
+            array_unshift($courses, [
+                'title' => 'Jadwal Kuliah & Kalender Akademik',
+                'subtitle' => 'Lihat matriks jadwal mingguan dan kalender semester',
+                'badge' => 'Jadwal',
+                'url' => route('app.schedule'),
+                'icon' => 'calendar',
+            ]);
+        }
 
         // 2. Materials
         $materials = Material::with('meeting.academicClass.course')

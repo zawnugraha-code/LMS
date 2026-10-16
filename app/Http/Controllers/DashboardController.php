@@ -16,12 +16,17 @@ use App\Models\Quiz;
 use App\Models\Submission;
 use App\Models\User;
 use App\Models\XpLedger;
+use App\Services\ScheduleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
+    public function __construct(
+        protected ScheduleService $scheduleService
+    ) {}
+
     /**
      * Display the role-adaptive Arunika LMS dashboard.
      */
@@ -111,6 +116,10 @@ class DashboardController extends Controller
                 $data['badges'] = $user->badges;
                 $data['allBadges'] = Badge::all();
                 $data['recentXp'] = XpLedger::where('user_id', $user->id)->latest()->take(5)->get();
+                $data['todayClasses'] = $this->scheduleService->getTodayClasses($user);
+                $data['todayFormatted'] = now()->locale('id')->isoFormat('dddd, D MMM Y');
+                $hour = (int) now()->format('H');
+                $data['timeGreeting'] = $hour < 11 ? 'Selamat pagi' : ($hour < 15 ? 'Selamat siang' : ($hour < 18 ? 'Selamat sore' : 'Selamat malam'));
                 break;
         }
 

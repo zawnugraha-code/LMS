@@ -11,6 +11,7 @@ use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingController;
 use App\Models\Campus;
@@ -53,6 +54,9 @@ Route::get('/app', [DashboardController::class, 'index'])->name('app.dashboard')
 Route::get('/app/courses', [CourseController::class, 'index'])->name('app.courses');
 Route::get('/app/courses/{class}', [CourseController::class, 'show'])->name('app.courses.show');
 Route::get('/app/courses/{class}/classroom', [CourseController::class, 'classroom'])->name('app.courses.classroom');
+Route::get('/app/schedule', [ScheduleController::class, 'index'])->name('app.schedule');
+Route::get('/app/schedule/export.ics', [ScheduleController::class, 'exportIcs'])->name('app.schedule.export.ics');
+Route::get('/api/schedule/events', [ScheduleController::class, 'events'])->name('api.schedule.events');
 Route::get('/app/assignments', [AssignmentController::class, 'index'])->name('app.assignments');
 Route::get('/app/assignments/calendar.ics', [AssignmentController::class, 'exportCalendar'])->name('assignments.calendar.ics');
 Route::get('/app/assignments/{assignment}/submit', [AssignmentController::class, 'submitForm'])->name('assignments.submit_form');

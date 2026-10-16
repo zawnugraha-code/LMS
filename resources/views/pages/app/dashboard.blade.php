@@ -42,7 +42,7 @@
                             </p>
                             <div class="pt-2">
                                 <a 
-                                    href="#jadwal" 
+                                    href="{{ route('app.schedule') }}" 
                                     class="inline-flex items-center gap-1.5 px-4 py-2 rounded-[6px] bg-primary hover:bg-primary-hover active:bg-primary text-white text-xs font-semibold shadow-xs transition-colors"
                                 >
                                     <span>Lihat Jadwal Kuliah</span>
@@ -69,51 +69,56 @@
                                 <x-icon name="calendar" :size="18" class="text-primary shrink-0" />
                                 <h3 class="text-[15px] font-semibold text-text">Mata Kuliah Hari Ini</h3>
                             </div>
-                            <span class="text-xs text-text-muted">Kamis, 15 Okt 2026</span>
+                            <span class="text-xs text-text-muted">{{ $todayFormatted ?? now()->locale('id')->isoFormat('dddd, D MMM Y') }}</span>
                         </div>
 
                         <div class="divide-y divide-line">
-                            <!-- Sesi 1 -->
-                            <div class="px-5 py-3.5 flex items-center justify-between gap-4 hover:bg-canvas/50 transition-colors cursor-pointer group">
-                                <div class="flex items-center gap-3.5 min-w-0">
-                                    <span class="w-2 h-2 rounded-full bg-[#0EA5E9] shrink-0"></span>
-                                    <span class="text-xs font-medium text-text tabular-nums w-24 shrink-0">
-                                        08:00 &ndash; 10:00
-                                    </span>
-                                    <div class="min-w-0 space-y-0.5">
-                                        <p class="text-[13px] font-semibold text-text truncate group-hover:text-accent transition-colors">
-                                            Pemrograman Berorientasi Objek & Desain Pola
-                                        </p>
-                                        <div class="flex items-center gap-2 text-[11px] text-text-muted">
-                                            <span>IF2101</span>
-                                            <span>&bull;</span>
-                                            <span>Ruang Lab 307 - Gedung B</span>
+                            @if(isset($todayClasses) && $todayClasses->isNotEmpty())
+                                @foreach($todayClasses as $tc)
+                                    <a 
+                                        href="{{ route('app.courses.classroom', $tc) }}" 
+                                        class="px-5 py-3.5 flex items-center justify-between gap-4 hover:bg-canvas/50 transition-colors cursor-pointer group"
+                                    >
+                                        <div class="flex items-center gap-3.5 min-w-0">
+                                            <span class="w-2 h-2 rounded-full {{ $tc->color_theme['dot'] ?? 'bg-[#0EA5E9]' }} shrink-0"></span>
+                                            <span class="text-xs font-medium text-text tabular-nums w-24 shrink-0">
+                                                {{ \Carbon\Carbon::parse($tc->start_time)->format('H:i') }} &ndash; {{ \Carbon\Carbon::parse($tc->end_time)->format('H:i') }}
+                                            </span>
+                                            <div class="min-w-0 space-y-0.5">
+                                                <p class="text-[13px] font-semibold text-text truncate group-hover:text-accent transition-colors">
+                                                    {{ $tc->course?->name }}
+                                                </p>
+                                                <div class="flex items-center gap-2 text-[11px] text-text-muted">
+                                                    <span>{{ $tc->course?->code }}</span>
+                                                    <span>&bull;</span>
+                                                    <span>{{ $tc->room ?? 'Lab Komputer' }}</span>
+                                                    @if(isset($tc->status_label))
+                                                        <span>&bull;</span>
+                                                        <span class="px-1.5 py-0.5 rounded-[4px] text-[10px] font-medium border {{ $tc->status_badge }}">{{ $tc->status_label }}</span>
+                                                    @endif
+                                                </div>
+                                            </div>
                                         </div>
+                                        <x-icon name="chevron-right" :size="16" class="text-text-subtle shrink-0 group-hover:text-text transition-colors" />
+                                    </a>
+                                @endforeach
+                            @else
+                                <div class="p-6 text-center space-y-2">
+                                    <div class="w-10 h-10 rounded-full bg-blue-50 text-accent flex items-center justify-center mx-auto">
+                                        <x-icon name="calendar-check" :size="20" />
+                                    </div>
+                                    <p class="text-[13px] font-semibold text-text">Tidak ada jadwal perkuliahan hari ini</p>
+                                    <p class="text-[11px] text-text-muted max-w-sm mx-auto">
+                                        Gunakan waktu Anda untuk mengulang materi perkuliahan atau menyelesaikan tugas mandiri.
+                                    </p>
+                                    <div class="pt-1">
+                                        <a href="{{ route('app.schedule') }}" class="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline">
+                                            <span>Buka Jadwal Mingguan</span>
+                                            <x-icon name="chevron-right" :size="12" />
+                                        </a>
                                     </div>
                                 </div>
-                                <x-icon name="chevron-right" :size="16" class="text-text-subtle shrink-0 group-hover:text-text transition-colors" />
-                            </div>
-
-                            <!-- Sesi 2 -->
-                            <div class="px-5 py-3.5 flex items-center justify-between gap-4 hover:bg-canvas/50 transition-colors cursor-pointer group">
-                                <div class="flex items-center gap-3.5 min-w-0">
-                                    <span class="w-2 h-2 rounded-full bg-[#10B981] shrink-0"></span>
-                                    <span class="text-xs font-medium text-text tabular-nums w-24 shrink-0">
-                                        10:00 &ndash; 12:00
-                                    </span>
-                                    <div class="min-w-0 space-y-0.5">
-                                        <p class="text-[13px] font-semibold text-text truncate group-hover:text-accent transition-colors">
-                                            Basis Data & Sistem Terdistribusi
-                                        </p>
-                                        <div class="flex items-center gap-2 text-[11px] text-text-muted">
-                                            <span>IF2102</span>
-                                            <span>&bull;</span>
-                                            <span>Ruang Gedung B 201 - Lab Basis Data</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <x-icon name="chevron-right" :size="16" class="text-text-subtle shrink-0 group-hover:text-text transition-colors" />
-                            </div>
+                            @endif
                         </div>
                     </x-ui.card>
 
