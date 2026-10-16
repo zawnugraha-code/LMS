@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\AcademicClass;
 use App\Models\Term;
 use App\Models\User;
+use Illuminate\Support\Collection;
 
 class CourseService
 {
@@ -49,13 +50,14 @@ class CourseService
     /**
      * Get enriched course list for the term and student.
      */
-    public function getCourses(User $user, Term $term, array $filters = []): \Illuminate\Support\Collection
+    public function getCourses(User $user, Term $term, array $filters = []): Collection
     {
         $query = AcademicClass::with([
             'course.cpmks',
             'lecturer',
             'enrollments' => fn ($q) => $q->where('user_id', $user->id),
             'meetings.materials.progress' => fn ($q) => $q->where('user_id', $user->id),
+            'meetings.attendanceSession.logs' => fn ($q) => $q->where('user_id', $user->id),
         ])
             ->where('term_id', $term->id)
             ->orderBy('id');
@@ -69,7 +71,7 @@ class CourseService
             // Total meetings (typically 14)
             $totalMeetings = $class->meetings->count() > 0 ? $class->meetings->count() : 14;
 
-            // Completed meetings: meetings where at least one material is completed
+            // Completed meetings: meetings where material is completed or attendance was recorded
             $completedMeetings = 0;
             foreach ($class->meetings as $meeting) {
                 $hasCompleted = $meeting->materials->contains(function ($mat) {
@@ -77,7 +79,8 @@ class CourseService
 
                     return $prog && $prog->status === 'completed';
                 });
-                if ($hasCompleted) {
+                $hasAttendance = $meeting->attendanceSession && $meeting->attendanceSession->logs->where('status', 'present')->isNotEmpty();
+                if ($hasCompleted || $hasAttendance) {
                     $completedMeetings++;
                 }
             }

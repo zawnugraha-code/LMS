@@ -525,11 +525,44 @@ class CanonicalStudentSeeder extends Seeder
 
                 // Create a material for this meeting
                 $isCompleted = ($w <= $data['completed_meetings']);
+                $matTitle = "Modul Perkuliahan Minggu ke-{$w}";
+                $matType = ($w % 2 === 0) ? 'video' : 'document';
+                $matStatus = $isCompleted ? 'completed' : 'not_started';
+                $watchPct = $isCompleted ? 100 : 0;
+
+                if ($data['code'] === 'IF2101') {
+                    $canonicalMaterials = [
+                        1 => ['title' => 'Konsep Dasar OOP', 'type' => 'document', 'status' => 'completed', 'pct' => 100],
+                        2 => ['title' => 'Setup Environment & Java/PHP Core', 'type' => 'document', 'status' => 'completed', 'pct' => 100],
+                        3 => ['title' => 'Pengenalan Class, Object, dan Method', 'type' => 'video', 'status' => 'completed', 'pct' => 100],
+                        4 => ['title' => 'Praktikum Enkapsulasi & Abstraksi', 'type' => 'document', 'status' => 'completed', 'pct' => 100],
+                        5 => ['title' => 'Creational Patterns (Factory & Singleton)', 'type' => 'document', 'status' => 'completed', 'pct' => 100],
+                        6 => ['title' => 'Structural Patterns (Adapter & Decorator)', 'type' => 'video', 'status' => 'in_progress', 'pct' => 75],
+                        7 => ['title' => 'Behavioral Patterns (Observer & Strategy)', 'type' => 'video', 'status' => 'in_progress', 'pct' => 45],
+                        8 => ['title' => 'Implementasi Design Pattern', 'type' => 'assignment', 'status' => 'in_progress', 'pct' => 20],
+                        9 => ['title' => 'Prinsip SOLID & Clean Architecture', 'type' => 'document', 'status' => 'in_progress', 'pct' => 50],
+                        10 => ['title' => 'Refactoring Monolithic Code', 'type' => 'video', 'status' => 'in_progress', 'pct' => 30],
+                        11 => ['title' => 'Kuis Pemahaman Design Pattern', 'type' => 'quiz', 'status' => 'in_progress', 'pct' => 0],
+                        12 => ['title' => 'Arsitektur Microservices & Spring Core', 'type' => 'document', 'status' => 'locked', 'pct' => 0],
+                        13 => ['title' => 'Implementasi Core Banking API', 'type' => 'video', 'status' => 'locked', 'pct' => 0],
+                        14 => ['title' => 'Evaluasi Capaian Pembelajaran & Mini Project', 'type' => 'reference', 'status' => 'locked', 'pct' => 0],
+                    ];
+
+                    if (isset($canonicalMaterials[$w])) {
+                        $matTitle = $canonicalMaterials[$w]['title'];
+                        $matType = $canonicalMaterials[$w]['type'];
+                        $matStatus = $canonicalMaterials[$w]['status'];
+                        $watchPct = $canonicalMaterials[$w]['pct'];
+                        $isCompleted = ($matStatus === 'completed');
+                    }
+                }
+
                 $material = Material::create([
                     'meeting_id' => $meeting->id,
-                    'title' => "Modul Perkuliahan Minggu ke-{$w}",
-                    'type' => ($w % 2 === 0) ? 'video' : 'document',
-                    'content' => "Ringkasan materi perkuliahan minggu ke-{$w} untuk mata kuliah {$data['name']}.",
+                    'title' => $matTitle,
+                    'type' => $matType,
+                    'content' => "Ringkasan materi perkuliahan minggu ke-{$w} untuk mata kuliah {$data['name']}. Materi ini mencakup teori, panduan praktikum, dan implementasi kode standar industri.",
+                    'file_path' => "/materials/modul-{$w}.pdf",
                     'order' => 1,
                     'is_downloadable' => true,
                 ]);
@@ -537,8 +570,8 @@ class CanonicalStudentSeeder extends Seeder
                 MaterialProgress::create([
                     'user_id' => $studentArya->id,
                     'material_id' => $material->id,
-                    'status' => $isCompleted ? 'completed' : 'not_started',
-                    'watch_percentage' => $isCompleted ? 100 : 0,
+                    'status' => $matStatus,
+                    'watch_percentage' => $watchPct,
                     'completed_at' => $isCompleted ? now()->subDays(15 - $w) : null,
                 ]);
 
@@ -548,10 +581,10 @@ class CanonicalStudentSeeder extends Seeder
                     'qr_secret' => Str::random(32),
                     'opened_at' => $meetingDate,
                     'closed_at' => $meetingDate->copy()->addHours(2),
-                    'is_active' => $w <= 8 && ! $isLocked,
+                    'is_active' => $w <= 7 && ! $isLocked,
                 ]);
 
-                if ($w <= 8 && ! $isLocked) {
+                if ($w <= 7 && ! $isLocked) {
                     AttendanceLog::create([
                         'attendance_session_id' => $attSession->id,
                         'user_id' => $studentArya->id,

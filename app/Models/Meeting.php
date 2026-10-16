@@ -39,6 +39,11 @@ class Meeting extends Model
         return $this->belongsTo(AcademicClass::class, 'class_id');
     }
 
+    public function class(): BelongsTo
+    {
+        return $this->academicClass();
+    }
+
     public function materials(): HasMany
     {
         return $this->hasMany(Material::class)->orderBy('order');

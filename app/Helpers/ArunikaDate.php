@@ -24,7 +24,13 @@ class ArunikaDate
         $carbon->setTimezone($timezone);
 
         if ($customFormat) {
-            return $carbon->translatedFormat($customFormat);
+            $phpCustom = str_replace(
+                ['DD', 'MMM', 'MM', 'YYYY', 'HH', 'mm'],
+                ['d', 'M', 'm', 'Y', 'H', 'i'],
+                $customFormat
+            );
+
+            return $carbon->translatedFormat($phpCustom);
         }
 
         $format = $pref?->date_format ?? 'd M Y';

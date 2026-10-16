@@ -7,19 +7,34 @@
 
     <div 
         x-data="{
-            activeTab: 'all',
-            bab1Open: true,
-            bab2Open: true,
-            bab3Open: false,
-            selectedCourseFilter: 'IF2101',
-            selectedTypeFilter: 'all',
-            selectedStatusFilter: 'all',
-            searchQuery: '',
+            activeTab: '{{ $filters['type'] ?? 'all' }}',
+            babOpen: [true, true, false],
+            selectedCourseFilter: '{{ $selectedClass?->course?->code ?? 'IF2101' }}',
+            selectedTypeFilter: '{{ $filters['type'] ?? 'all' }}',
+            selectedStatusFilter: '{{ $filters['status'] ?? 'all' }}',
+            searchQuery: '{{ $filters['query'] ?? '' }}',
             viewerModalOpen: false,
+            courseDropdownOpen: false,
+            typeDropdownOpen: false,
+            statusDropdownOpen: false,
             selectedMaterial: null,
             openMaterial(item) {
+                if (item.is_locked) {
+                    alert('Materi ini masih terkunci dan baru dapat diakses sesuai jadwal perkuliahan.');
+                    return;
+                }
                 this.selectedMaterial = item;
                 this.viewerModalOpen = true;
+            },
+            filterMatches(item) {
+                if (this.activeTab !== 'all' && this.activeTab !== item.type_key) return false;
+                if (this.selectedTypeFilter !== 'all' && this.selectedTypeFilter !== item.type_key) return false;
+                if (this.selectedStatusFilter !== 'all' && this.selectedStatusFilter !== item.status_class) return false;
+                if (this.searchQuery.trim().length > 0) {
+                    const q = this.searchQuery.toLowerCase();
+                    if (!item.title.toLowerCase().includes(q) && !item.code.toLowerCase().includes(q)) return false;
+                }
+                return true;
             }
         }"
     >
@@ -55,13 +70,13 @@
                 <!-- Info Kursus & Meta -->
                 <div class="min-w-0 flex-1">
                     <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600 mb-1">
-                        IF2101
+                        {{ $selectedClass?->course?->code ?? 'IF2101' }}
                     </span>
                     <h2 class="text-base sm:text-lg font-bold text-text truncate">
-                        Pemrograman Berorientasi Objek & Desain Pola
+                        {{ $selectedClass?->course?->name ?? 'Pemrograman Berorientasi Objek & Desain Pola' }}
                     </h2>
                     <p class="text-xs text-text-muted mt-0.5">
-                        Semester 3 &bull; Teknik Informatika &bull; Kelas A
+                        {{ $selectedClass?->term?->name ?? 'Semester 3' }} &bull; {{ $selectedClass?->course?->curriculum?->program?->name ?? 'Teknik Informatika' }} &bull; Kelas {{ $selectedClass?->section ?? 'A' }}
                     </p>
                 </div>
 
@@ -83,16 +98,16 @@
 
                 <!-- Progress Track & Fill -->
                 <div class="w-full h-2 bg-blue-100/70 rounded-full overflow-hidden">
-                    <div class="h-full bg-[#2563EB] rounded-full transition-all duration-300" style="width: 35.7%;"></div>
+                    <div class="h-full bg-[#2563EB] rounded-full transition-all duration-300" style="width: {{ $summary['progress_percentage'] }}%;"></div>
                 </div>
 
                 <!-- Stats Text -->
                 <div class="mt-2.5">
                     <span class="text-xs text-text-muted font-normal block leading-tight">
-                        5 / 14 Materi
+                        {{ $summary['completed_materials'] }} / {{ $summary['total_materials'] }} Materi
                     </span>
                     <span class="text-xs font-bold text-[#2563EB] mt-0.5 block leading-tight">
-                        35.7% Selesai
+                        {{ $summary['progress_percentage'] }}% Selesai
                     </span>
                 </div>
             </div>
@@ -108,7 +123,7 @@
                 <!-- Tab: Semua Materi (Active) -->
                 <button 
                     type="button" 
-                    @click="activeTab = 'all'"
+                    @click="activeTab = 'all'; selectedTypeFilter = 'all'"
                     :class="activeTab === 'all' ? 'bg-[#2563EB] text-white shadow-2xs font-semibold' : 'text-text-muted hover:text-text hover:bg-slate-100 font-medium'"
                     class="px-4 py-1.5 rounded-[6px] text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
@@ -119,7 +134,7 @@
                 <!-- Tab: Modul -->
                 <button 
                     type="button" 
-                    @click="activeTab = 'modul'"
+                    @click="activeTab = 'modul'; selectedTypeFilter = 'modul'"
                     :class="activeTab === 'modul' ? 'bg-[#2563EB] text-white shadow-2xs font-semibold' : 'text-text-muted hover:text-text hover:bg-slate-100 font-medium'"
                     class="px-3.5 py-1.5 rounded-[6px] text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
@@ -130,7 +145,7 @@
                 <!-- Tab: Video -->
                 <button 
                     type="button" 
-                    @click="activeTab = 'video'"
+                    @click="activeTab = 'video'; selectedTypeFilter = 'video'"
                     :class="activeTab === 'video' ? 'bg-[#2563EB] text-white shadow-2xs font-semibold' : 'text-text-muted hover:text-text hover:bg-slate-100 font-medium'"
                     class="px-3.5 py-1.5 rounded-[6px] text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
@@ -141,7 +156,7 @@
                 <!-- Tab: Tugas -->
                 <button 
                     type="button" 
-                    @click="activeTab = 'tugas'"
+                    @click="activeTab = 'tugas'; selectedTypeFilter = 'tugas'"
                     :class="activeTab === 'tugas' ? 'bg-[#2563EB] text-white shadow-2xs font-semibold' : 'text-text-muted hover:text-text hover:bg-slate-100 font-medium'"
                     class="px-3.5 py-1.5 rounded-[6px] text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
@@ -152,7 +167,7 @@
                 <!-- Tab: Kuis -->
                 <button 
                     type="button" 
-                    @click="activeTab = 'kuis'"
+                    @click="activeTab = 'kuis'; selectedTypeFilter = 'kuis'"
                     :class="activeTab === 'kuis' ? 'bg-[#2563EB] text-white shadow-2xs font-semibold' : 'text-text-muted hover:text-text hover:bg-slate-100 font-medium'"
                     class="px-3.5 py-1.5 rounded-[6px] text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
@@ -163,7 +178,7 @@
                 <!-- Tab: Referensi -->
                 <button 
                     type="button" 
-                    @click="activeTab = 'referensi'"
+                    @click="activeTab = 'referensi'; selectedTypeFilter = 'referensi'"
                     :class="activeTab === 'referensi' ? 'bg-[#2563EB] text-white shadow-2xs font-semibold' : 'text-text-muted hover:text-text hover:bg-slate-100 font-medium'"
                     class="px-3.5 py-1.5 rounded-[6px] text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
@@ -184,444 +199,94 @@
                  ========================================== -->
             <div class="lg:col-span-8 space-y-4">
 
-                <!-- ==========================================
-                     BAB 1: Pengenalan dan Konsep Dasar OOP (3/3 Materi)
-                     ========================================== -->
-                <div class="bg-surface border border-line rounded-[10px] overflow-hidden shadow-2xs transition-all">
-                    <!-- Bab 1 Header (Clickable Accordion) -->
-                    <button 
-                        type="button"
-                        @click="bab1Open = !bab1Open" 
-                        class="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-canvas/30 transition-colors cursor-pointer"
-                    >
-                        <div class="flex items-center gap-3.5 min-w-0">
-                            <!-- Blue Circle Number 1 -->
-                            <div class="w-7 h-7 rounded-full bg-[#2563EB] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
-                                1
-                            </div>
-                            <div class="min-w-0">
-                                <h3 class="font-bold text-sm text-text truncate">
-                                    Pengenalan dan Konsep Dasar OOP
-                                </h3>
-                                <p class="text-xs text-text-muted mt-0.5 line-clamp-1">
-                                    Materi dasar mengenai konsep Object Oriented Programming dan paradigma pemrograman.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-3 shrink-0 ml-3">
-                            <span class="text-xs font-semibold text-text-muted">
-                                3 / 3 Materi
-                            </span>
-                            <div class="text-text-muted">
-                                <x-icon name="chevron-down" :size="16" class="text-text-muted" />
-                            </div>
-                        </div>
-                    </button>
-
-                    <!-- Bab 1 Items List -->
-                    <div x-show="bab1Open" x-collapse class="border-t border-line/60 divide-y divide-line/60">
-                        
-                        <!-- Item 1.1: Konsep Dasar OOP -->
-                        <div 
-                            @click="openMaterial({
-                                code: '1.1',
-                                title: 'Konsep Dasar OOP',
-                                type: 'Modul',
-                                duration: '45 menit',
-                                date: '10 Sep 2026',
-                                status: 'Selesai',
-                                icon: 'file-text',
-                                description: 'Pembahasan mendalam tentang pilar utama OOP: Abstraction, Encapsulation, Inheritance, dan Polymorphism dalam konteks pengembangan software modern.',
-                                fileUrl: '#download-pdf',
-                                lecturer: 'Prof. Dr. Budi Rahardjo, Ph.D.'
-                            })"
-                            class="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-canvas/50 transition-colors cursor-pointer group"
+                @forelse($chapters as $cIdx => $chapter)
+                    <div class="bg-surface border border-line rounded-[10px] overflow-hidden shadow-2xs transition-all">
+                        <!-- Bab Header (Clickable Accordion) -->
+                        <button 
+                            type="button"
+                            @click="babOpen[{{ $cIdx }}] = !babOpen[{{ $cIdx }}]" 
+                            class="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-canvas/30 transition-colors cursor-pointer"
                         >
                             <div class="flex items-center gap-3.5 min-w-0">
-                                <div class="w-8 h-8 rounded-full bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                    <x-icon name="file-text" :size="15" />
+                                <!-- Blue Circle Number -->
+                                <div class="w-7 h-7 rounded-full bg-[#2563EB] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                                    {{ $chapter['index'] }}
                                 </div>
                                 <div class="min-w-0">
-                                    <h4 class="text-xs font-semibold text-text truncate group-hover:text-[#2563EB] transition-colors">
-                                        1.1 Konsep Dasar OOP
-                                    </h4>
-                                    <p class="text-[11px] text-text-muted mt-0.5">
-                                        Modul &bull; 45 menit &bull; Dibuat 10 Sep 2026
+                                    <h3 class="font-bold text-sm text-text truncate">
+                                        {{ $chapter['title'] }}
+                                    </h3>
+                                    <p class="text-xs text-text-muted mt-0.5 line-clamp-1">
+                                        {{ $chapter['description'] }}
                                     </p>
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-3 shrink-0">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-600">
-                                    <x-icon name="check" :size="11" />
-                                    <span>Selesai</span>
+                            <div class="flex items-center gap-3 shrink-0 ml-3">
+                                <span class="text-xs font-semibold text-text-muted">
+                                    {{ $chapter['completed_count'] }} / {{ $chapter['total_count'] }} Materi
                                 </span>
-                                <x-icon name="chevron-right" :size="14" class="text-text-muted group-hover:text-text transition-colors" />
+                                <div class="text-text-muted">
+                                    <x-icon name="chevron-down" :size="16" class="text-text-muted transition-transform duration-200" ::class="babOpen[{{ $cIdx }}] ? 'rotate-180' : ''" />
+                                </div>
                             </div>
+                        </button>
+
+                        <!-- Bab Items List -->
+                        <div x-show="babOpen[{{ $cIdx }}]" x-collapse class="border-t border-line/60 divide-y divide-line/60">
+                            @forelse($chapter['materials'] as $item)
+                                <div 
+                                    x-show="filterMatches({{ json_encode($item) }})"
+                                    @click="openMaterial({{ json_encode($item) }})"
+                                    class="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-canvas/50 transition-colors cursor-pointer group {{ $item['is_locked'] ? 'opacity-75' : '' }}"
+                                >
+                                    <div class="flex items-center gap-3.5 min-w-0">
+                                        <div class="w-8 h-8 rounded-full {{ $item['is_locked'] ? 'bg-slate-100 text-slate-500' : 'bg-blue-50 text-[#2563EB]' }} flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                            <x-icon name="{{ $item['icon'] }}" :size="15" />
+                                        </div>
+                                        <div class="min-w-0">
+                                            <h4 class="text-xs font-semibold text-text truncate group-hover:text-[#2563EB] transition-colors">
+                                                {{ $item['code'] }} {{ $item['title'] }}
+                                            </h4>
+                                            <p class="text-[11px] text-text-muted mt-0.5">
+                                                {{ $item['type'] }} &bull; {{ $item['duration'] }} &bull; Dibuat {{ $item['date'] }}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-3 shrink-0">
+                                        @if($item['status_class'] === 'completed')
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700">
+                                                <x-icon name="check" :size="11" />
+                                                <span>Selesai</span>
+                                            </span>
+                                        @elseif($item['status_class'] === 'in_progress')
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700">
+                                                <x-icon name="clock" :size="11" />
+                                                <span>Dalam Proses</span>
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500">
+                                                <x-icon name="lock" :size="11" />
+                                                <span>Terkunci</span>
+                                            </span>
+                                        @endif
+                                        <x-icon name="chevron-right" :size="14" class="text-text-muted group-hover:text-text transition-colors" />
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="p-4 text-xs text-text-muted text-center">
+                                    Tidak ada materi dalam bab ini sesuai filter.
+                                </div>
+                            @endforelse
                         </div>
-
-                        <!-- Item 1.2: Video Pembahasan OOP -->
-                        <div 
-                            @click="openMaterial({
-                                code: '1.2',
-                                title: 'Video Pembahasan OOP',
-                                type: 'Video',
-                                duration: '1 jam',
-                                date: '11 Sep 2026',
-                                status: 'Selesai',
-                                icon: 'play',
-                                description: 'Rekaman video perkuliahan sesi 1: Paradigma OOP vs Procedural, live coding implementasi class, object, dan memory allocation di Java.',
-                                fileUrl: '#watch-video',
-                                lecturer: 'Prof. Dr. Budi Rahardjo, Ph.D.'
-                            })"
-                            class="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-canvas/50 transition-colors cursor-pointer group"
-                        >
-                            <div class="flex items-center gap-3.5 min-w-0">
-                                <div class="w-8 h-8 rounded-full bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                    <x-icon name="play" :size="14" class="fill-[#2563EB]" />
-                                </div>
-                                <div class="min-w-0">
-                                    <h4 class="text-xs font-semibold text-text truncate group-hover:text-[#2563EB] transition-colors">
-                                        1.2 Video Pembahasan OOP
-                                    </h4>
-                                    <p class="text-[11px] text-text-muted mt-0.5">
-                                        Video &bull; 1 jam &bull; Dibuat 11 Sep 2026
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-3 shrink-0">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-600">
-                                    <x-icon name="check" :size="11" />
-                                    <span>Selesai</span>
-                                </span>
-                                <x-icon name="chevron-right" :size="14" class="text-text-muted group-hover:text-text transition-colors" />
-                            </div>
-                        </div>
-
-                        <!-- Item 1.3: Studi Kasus dan Latihan -->
-                        <div 
-                            @click="openMaterial({
-                                code: '1.3',
-                                title: 'Studi Kasus dan Latihan',
-                                type: 'Referensi',
-                                duration: '30 menit',
-                                date: '12 Sep 2026',
-                                status: 'Selesai',
-                                icon: 'link',
-                                description: 'Latihan soal mandiri dan studi kasus perancangan sistem perbankan sederhana dengan prinsip enkapsulasi data nasabah.',
-                                fileUrl: '#external-resource',
-                                lecturer: 'Prof. Dr. Budi Rahardjo, Ph.D.'
-                            })"
-                            class="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-canvas/50 transition-colors cursor-pointer group"
-                        >
-                            <div class="flex items-center gap-3.5 min-w-0">
-                                <div class="w-8 h-8 rounded-full bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                    <x-icon name="link" :size="14" />
-                                </div>
-                                <div class="min-w-0">
-                                    <h4 class="text-xs font-semibold text-text truncate group-hover:text-[#2563EB] transition-colors">
-                                        1.3 Studi Kasus dan Latihan
-                                    </h4>
-                                    <p class="text-[11px] text-text-muted mt-0.5">
-                                        Referensi &bull; 30 menit &bull; Dibuat 12 Sep 2026
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-3 shrink-0">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-600">
-                                    <x-icon name="check" :size="11" />
-                                    <span>Selesai</span>
-                                </span>
-                                <x-icon name="chevron-right" :size="14" class="text-text-muted group-hover:text-text transition-colors" />
-                            </div>
-                        </div>
-
                     </div>
-                </div>
-
-                <!-- ==========================================
-                     BAB 2: Desain Pola (Design Pattern) (2/4 Materi)
-                     ========================================== -->
-                <div class="bg-surface border border-line rounded-[10px] overflow-hidden shadow-2xs transition-all">
-                    <!-- Bab 2 Header (Clickable Accordion) -->
-                    <button 
-                        type="button"
-                        @click="bab2Open = !bab2Open" 
-                        class="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-canvas/30 transition-colors cursor-pointer"
-                    >
-                        <div class="flex items-center gap-3.5 min-w-0">
-                            <!-- Blue Circle Number 2 -->
-                            <div class="w-7 h-7 rounded-full bg-[#2563EB] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
-                                2
-                            </div>
-                            <div class="min-w-0">
-                                <h3 class="font-bold text-sm text-text truncate">
-                                    Desain Pola (Design Pattern)
-                                </h3>
-                                <p class="text-xs text-text-muted mt-0.5 line-clamp-1">
-                                    Mempelajari berbagai desain pola yang umum digunakan dalam pengembangan aplikasi.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-3 shrink-0 ml-3">
-                            <span class="text-xs font-semibold text-text-muted">
-                                2 / 4 Materi
-                            </span>
-                            <div class="text-text-muted">
-                                <x-icon name="chevron-down" :size="16" class="text-text-muted" />
-                            </div>
-                        </div>
-                    </button>
-
-                    <!-- Bab 2 Items List -->
-                    <div x-show="bab2Open" x-collapse class="border-t border-line/60 divide-y divide-line/60">
-                        
-                        <!-- Item 2.1: Singleton Pattern -->
-                        <div 
-                            @click="openMaterial({
-                                code: '2.1',
-                                title: 'Singleton Pattern',
-                                type: 'Modul',
-                                duration: '50 menit',
-                                date: '14 Sep 2026',
-                                status: 'Selesai',
-                                icon: 'file-text',
-                                description: 'Studi mendalam implementasi Creational Design Pattern: Singleton untuk koneksi Database connection pool yang aman thread-safe.',
-                                fileUrl: '#download-pdf',
-                                lecturer: 'Prof. Dr. Budi Rahardjo, Ph.D.'
-                            })"
-                            class="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-canvas/50 transition-colors cursor-pointer group"
-                        >
-                            <div class="flex items-center gap-3.5 min-w-0">
-                                <div class="w-8 h-8 rounded-full bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                    <x-icon name="file-text" :size="15" />
-                                </div>
-                                <div class="min-w-0">
-                                    <h4 class="text-xs font-semibold text-text truncate group-hover:text-[#2563EB] transition-colors">
-                                        2.1 Singleton Pattern
-                                    </h4>
-                                    <p class="text-[11px] text-text-muted mt-0.5">
-                                        Modul &bull; 50 menit &bull; Dibuat 14 Sep 2026
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-3 shrink-0">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-600">
-                                    <x-icon name="check" :size="11" />
-                                    <span>Selesai</span>
-                                </span>
-                                <x-icon name="chevron-right" :size="14" class="text-text-muted group-hover:text-text transition-colors" />
-                            </div>
-                        </div>
-
-                        <!-- Item 2.2: Factory Pattern -->
-                        <div 
-                            @click="openMaterial({
-                                code: '2.2',
-                                title: 'Factory Pattern',
-                                type: 'Modul',
-                                duration: '40 menit',
-                                date: '15 Sep 2026',
-                                status: 'Selesai',
-                                icon: 'file-text',
-                                description: 'Konsep Factory Method dan Abstract Factory untuk loose-coupling instansiasi objek pembayaran multi-gateway.',
-                                fileUrl: '#download-pdf',
-                                lecturer: 'Prof. Dr. Budi Rahardjo, Ph.D.'
-                            })"
-                            class="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-canvas/50 transition-colors cursor-pointer group"
-                        >
-                            <div class="flex items-center gap-3.5 min-w-0">
-                                <div class="w-8 h-8 rounded-full bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                    <x-icon name="file-text" :size="15" />
-                                </div>
-                                <div class="min-w-0">
-                                    <h4 class="text-xs font-semibold text-text truncate group-hover:text-[#2563EB] transition-colors">
-                                        2.2 Factory Pattern
-                                    </h4>
-                                    <p class="text-[11px] text-text-muted mt-0.5">
-                                        Modul &bull; 40 menit &bull; Dibuat 15 Sep 2026
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-3 shrink-0">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-600">
-                                    <x-icon name="check" :size="11" />
-                                    <span>Selesai</span>
-                                </span>
-                                <x-icon name="chevron-right" :size="14" class="text-text-muted group-hover:text-text transition-colors" />
-                            </div>
-                        </div>
-
-                        <!-- Item 2.3: Observer Pattern (Belum Selesai) -->
-                        <div 
-                            @click="openMaterial({
-                                code: '2.3',
-                                title: 'Observer Pattern',
-                                type: 'Video',
-                                duration: '55 menit',
-                                date: '16 Sep 2026',
-                                status: 'Belum Selesai',
-                                icon: 'play',
-                                description: 'Behavioral Pattern: Mekanisme publish-subscribe event notification pada modul notifikasi email dan SMS nasabah.',
-                                fileUrl: '#watch-video',
-                                lecturer: 'Prof. Dr. Budi Rahardjo, Ph.D.'
-                            })"
-                            class="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-canvas/50 transition-colors cursor-pointer group"
-                        >
-                            <div class="flex items-center gap-3.5 min-w-0">
-                                <div class="w-8 h-8 rounded-full bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                    <x-icon name="play" :size="14" class="fill-[#2563EB]" />
-                                </div>
-                                <div class="min-w-0">
-                                    <h4 class="text-xs font-semibold text-text truncate group-hover:text-[#2563EB] transition-colors">
-                                        2.3 Observer Pattern
-                                    </h4>
-                                    <p class="text-[11px] text-text-muted mt-0.5">
-                                        Video &bull; 55 menit &bull; Dibuat 16 Sep 2026
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-3 shrink-0">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-[#2563EB] border border-blue-200">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#2563EB]"></span>
-                                    <span>Belum Selesai</span>
-                                </span>
-                                <x-icon name="chevron-right" :size="14" class="text-text-muted group-hover:text-text transition-colors" />
-                            </div>
-                        </div>
-
-                        <!-- Item 2.4: Implementasi Design Pattern (Tersedia Nanti) -->
-                        <div 
-                            @click="openMaterial({
-                                code: '2.4',
-                                title: 'Implementasi Design Pattern',
-                                type: 'Tugas',
-                                duration: 'Deadline 20 Sep 2026',
-                                date: '20 Sep 2026',
-                                status: 'Tersedia Nanti',
-                                icon: 'clipboard-list',
-                                description: 'Tugas proyek mandiri: Refaktorisasi legacy code monolitik menjadi clean architecture dengan 3 buah design pattern.',
-                                fileUrl: '#assignment-brief',
-                                lecturer: 'Prof. Dr. Budi Rahardjo, Ph.D.'
-                            })"
-                            class="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-canvas/50 transition-colors cursor-pointer group"
-                        >
-                            <div class="flex items-center gap-3.5 min-w-0">
-                                <div class="w-8 h-8 rounded-full bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                    <x-icon name="clipboard-list" :size="15" />
-                                </div>
-                                <div class="min-w-0">
-                                    <h4 class="text-xs font-semibold text-text truncate group-hover:text-[#2563EB] transition-colors">
-                                        2.4 Implementasi Design Pattern
-                                    </h4>
-                                    <p class="text-[11px] text-text-muted mt-0.5">
-                                        Tugas &bull; Deadline 20 Sep 2026
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-3 shrink-0">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600">
-                                    <x-icon name="lock" :size="11" />
-                                    <span>Tersedia Nanti</span>
-                                </span>
-                                <x-icon name="chevron-right" :size="14" class="text-text-muted group-hover:text-text transition-colors" />
-                            </div>
-                        </div>
-
+                @empty
+                    <div class="p-8 text-center bg-surface border border-line rounded-[10px] shadow-2xs">
+                        <p class="text-sm font-semibold text-text">Belum ada materi untuk mata kuliah ini.</p>
+                        <p class="text-xs text-text-muted mt-1">Dosen pengampu belum mengunggah materi ke ruang kelas.</p>
                     </div>
-                </div>
-
-                <!-- ==========================================
-                     BAB 3: Framework dan Studi Kasus Lanjutan (0/3 Materi)
-                     ========================================== -->
-                <div class="bg-surface border border-line rounded-[10px] overflow-hidden shadow-2xs transition-all">
-                    <!-- Bab 3 Header (Clickable Accordion) -->
-                    <button 
-                        type="button"
-                        @click="bab3Open = !bab3Open" 
-                        class="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-canvas/30 transition-colors cursor-pointer"
-                    >
-                        <div class="flex items-center gap-3.5 min-w-0">
-                            <!-- Blue Circle Number 3 -->
-                            <div class="w-7 h-7 rounded-full bg-[#2563EB] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
-                                3
-                            </div>
-                            <div class="min-w-0">
-                                <h3 class="font-bold text-sm text-text truncate">
-                                    Framework dan Studi Kasus Lanjutan
-                                </h3>
-                                <p class="text-xs text-text-muted mt-0.5 line-clamp-1">
-                                    Penerapan OOP dan desain pola dalam pengembangan aplikasi nyata.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-3 shrink-0 ml-3">
-                            <span class="text-xs font-semibold text-text-muted">
-                                0 / 3 Materi
-                            </span>
-                            <div class="text-text-muted">
-                                <x-icon name="chevron-right" :size="16" class="text-text-muted" x-show="!bab3Open" />
-                                <x-icon name="chevron-down" :size="16" class="text-text-muted" x-show="bab3Open" style="display: none;" />
-                            </div>
-                        </div>
-                    </button>
-
-                    <!-- Bab 3 Items List (Collapsed by Default) -->
-                    <div x-show="bab3Open" x-collapse class="border-t border-line/60 divide-y divide-line/60" style="display: none;">
-                        
-                        <!-- Item 3.1 -->
-                        <div class="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-canvas/50 transition-colors opacity-75">
-                            <div class="flex items-center gap-3.5 min-w-0">
-                                <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
-                                    <x-icon name="file-text" :size="15" />
-                                </div>
-                                <div class="min-w-0">
-                                    <h4 class="text-xs font-semibold text-text truncate">
-                                        3.1 Arsitektur Microservices & Spring Core
-                                    </h4>
-                                    <p class="text-[11px] text-text-muted mt-0.5">
-                                        Modul &bull; 60 menit &bull; Rilis 28 Sep 2026
-                                    </p>
-                                </div>
-                            </div>
-                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500">
-                                <x-icon name="lock" :size="11" />
-                                <span>Terkunci</span>
-                            </span>
-                        </div>
-
-                        <!-- Item 3.2 -->
-                        <div class="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-canvas/50 transition-colors opacity-75">
-                            <div class="flex items-center gap-3.5 min-w-0">
-                                <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
-                                    <x-icon name="video" :size="15" />
-                                </div>
-                                <div class="min-w-0">
-                                    <h4 class="text-xs font-semibold text-text truncate">
-                                        3.2 Implementasi Core Banking API
-                                    </h4>
-                                    <p class="text-[11px] text-text-muted mt-0.5">
-                                        Video &bull; 1.5 jam &bull; Rilis 01 Okt 2026
-                                    </p>
-                                </div>
-                            </div>
-                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500">
-                                <x-icon name="lock" :size="11" />
-                                <span>Terkunci</span>
-                            </span>
-                        </div>
-
-                    </div>
-                </div>
+                @endforelse
 
             </div>
 
@@ -647,6 +312,7 @@
                         </div>
                         <button 
                             type="button" 
+                            @click="courseDropdownOpen = !courseDropdownOpen"
                             class="px-3 py-2 rounded-[6px] border border-line bg-surface hover:bg-canvas text-xs font-medium text-text inline-flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-2xs"
                         >
                             <x-icon name="filter" :size="13" class="text-text-muted" />
@@ -667,42 +333,126 @@
                         <div class="relative">
                             <button 
                                 type="button" 
+                                @click="courseDropdownOpen = !courseDropdownOpen; typeDropdownOpen = false; statusDropdownOpen = false"
                                 class="w-full px-3 py-2 rounded-[6px] border border-line bg-surface hover:bg-canvas text-xs text-text flex items-center justify-between transition-colors cursor-pointer shadow-2xs"
                             >
                                 <div class="flex items-center gap-2 truncate">
                                     <x-icon name="graduation-cap" :size="14" class="text-text-muted shrink-0" />
-                                    <span class="truncate">Semua Mata Kuliah</span>
+                                    <span class="truncate">{{ $selectedClass?->course?->code }} - {{ Str::limit($selectedClass?->course?->name, 22) }}</span>
                                 </div>
                                 <x-icon name="chevron-down" :size="12" class="text-text-muted shrink-0" />
                             </button>
+
+                            <!-- Course Dropdown Menu -->
+                            <div 
+                                x-show="courseDropdownOpen" 
+                                @click.outside="courseDropdownOpen = false"
+                                x-transition.opacity.duration.150ms
+                                class="absolute top-full left-0 right-0 mt-1 z-50 bg-surface border border-line rounded-[8px] shadow-lg py-1 max-h-56 overflow-y-auto"
+                                style="display: none;"
+                            >
+                                @foreach($enrolledClasses as $enrolled)
+                                    <a 
+                                        href="{{ route('app.materials', ['course' => $enrolled->course?->code]) }}"
+                                        class="flex items-center justify-between px-3 py-2 text-xs hover:bg-canvas transition-colors {{ $selectedClass?->id === $enrolled->id ? 'font-bold text-[#2563EB] bg-blue-50/50' : 'text-text' }}"
+                                    >
+                                        <span class="truncate">{{ $enrolled->course?->code }} - {{ $enrolled->course?->name }}</span>
+                                        @if($selectedClass?->id === $enrolled->id)
+                                            <x-icon name="check" :size="14" class="text-[#2563EB] shrink-0" />
+                                        @endif
+                                    </a>
+                                @endforeach
+                            </div>
                         </div>
 
                         <!-- Dropdown 2: Semua Jenis Materi -->
                         <div class="relative">
                             <button 
                                 type="button" 
+                                @click="typeDropdownOpen = !typeDropdownOpen; courseDropdownOpen = false; statusDropdownOpen = false"
                                 class="w-full px-3 py-2 rounded-[6px] border border-line bg-surface hover:bg-canvas text-xs text-text flex items-center justify-between transition-colors cursor-pointer shadow-2xs"
                             >
                                 <div class="flex items-center gap-2 truncate">
                                     <x-icon name="layers" :size="14" class="text-text-muted shrink-0" />
-                                    <span class="truncate">Semua Jenis Materi</span>
+                                    <span class="truncate" x-text="activeTab === 'all' ? 'Semua Jenis Materi' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)">Semua Jenis Materi</span>
                                 </div>
                                 <x-icon name="chevron-down" :size="12" class="text-text-muted shrink-0" />
                             </button>
+
+                            <!-- Type Dropdown Menu -->
+                            <div 
+                                x-show="typeDropdownOpen" 
+                                @click.outside="typeDropdownOpen = false"
+                                x-transition.opacity.duration.150ms
+                                class="absolute top-full left-0 right-0 mt-1 z-50 bg-surface border border-line rounded-[8px] shadow-lg py-1"
+                                style="display: none;"
+                            >
+                                <button type="button" @click="activeTab = 'all'; selectedTypeFilter = 'all'; typeDropdownOpen = false" class="w-full text-left px-3 py-2 text-xs hover:bg-canvas text-text flex items-center justify-between">
+                                    <span>Semua Jenis Materi</span>
+                                    <x-icon name="check" :size="14" class="text-[#2563EB]" x-show="activeTab === 'all'" />
+                                </button>
+                                <button type="button" @click="activeTab = 'modul'; selectedTypeFilter = 'modul'; typeDropdownOpen = false" class="w-full text-left px-3 py-2 text-xs hover:bg-canvas text-text flex items-center justify-between">
+                                    <span>Modul</span>
+                                    <x-icon name="check" :size="14" class="text-[#2563EB]" x-show="activeTab === 'modul'" />
+                                </button>
+                                <button type="button" @click="activeTab = 'video'; selectedTypeFilter = 'video'; typeDropdownOpen = false" class="w-full text-left px-3 py-2 text-xs hover:bg-canvas text-text flex items-center justify-between">
+                                    <span>Video</span>
+                                    <x-icon name="check" :size="14" class="text-[#2563EB]" x-show="activeTab === 'video'" />
+                                </button>
+                                <button type="button" @click="activeTab = 'tugas'; selectedTypeFilter = 'tugas'; typeDropdownOpen = false" class="w-full text-left px-3 py-2 text-xs hover:bg-canvas text-text flex items-center justify-between">
+                                    <span>Tugas</span>
+                                    <x-icon name="check" :size="14" class="text-[#2563EB]" x-show="activeTab === 'tugas'" />
+                                </button>
+                                <button type="button" @click="activeTab = 'kuis'; selectedTypeFilter = 'kuis'; typeDropdownOpen = false" class="w-full text-left px-3 py-2 text-xs hover:bg-canvas text-text flex items-center justify-between">
+                                    <span>Kuis</span>
+                                    <x-icon name="check" :size="14" class="text-[#2563EB]" x-show="activeTab === 'kuis'" />
+                                </button>
+                                <button type="button" @click="activeTab = 'referensi'; selectedTypeFilter = 'referensi'; typeDropdownOpen = false" class="w-full text-left px-3 py-2 text-xs hover:bg-canvas text-text flex items-center justify-between">
+                                    <span>Referensi</span>
+                                    <x-icon name="check" :size="14" class="text-[#2563EB]" x-show="activeTab === 'referensi'" />
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Dropdown 3: Semua Status -->
                         <div class="relative">
                             <button 
                                 type="button" 
+                                @click="statusDropdownOpen = !statusDropdownOpen; courseDropdownOpen = false; typeDropdownOpen = false"
                                 class="w-full px-3 py-2 rounded-[6px] border border-line bg-surface hover:bg-canvas text-xs text-text flex items-center justify-between transition-colors cursor-pointer shadow-2xs"
                             >
                                 <div class="flex items-center gap-2 truncate">
                                     <x-icon name="check-circle" :size="14" class="text-text-muted shrink-0" />
-                                    <span class="truncate">Semua Status</span>
+                                    <span class="truncate" x-text="selectedStatusFilter === 'all' ? 'Semua Status' : (selectedStatusFilter === 'completed' ? 'Selesai' : (selectedStatusFilter === 'in_progress' ? 'Dalam Proses' : 'Terkunci'))">Semua Status</span>
                                 </div>
                                 <x-icon name="chevron-down" :size="12" class="text-text-muted shrink-0" />
                             </button>
+
+                            <!-- Status Dropdown Menu -->
+                            <div 
+                                x-show="statusDropdownOpen" 
+                                @click.outside="statusDropdownOpen = false"
+                                x-transition.opacity.duration.150ms
+                                class="absolute top-full left-0 right-0 mt-1 z-50 bg-surface border border-line rounded-[8px] shadow-lg py-1"
+                                style="display: none;"
+                            >
+                                <button type="button" @click="selectedStatusFilter = 'all'; statusDropdownOpen = false" class="w-full text-left px-3 py-2 text-xs hover:bg-canvas text-text flex items-center justify-between">
+                                    <span>Semua Status</span>
+                                    <x-icon name="check" :size="14" class="text-[#2563EB]" x-show="selectedStatusFilter === 'all'" />
+                                </button>
+                                <button type="button" @click="selectedStatusFilter = 'completed'; statusDropdownOpen = false" class="w-full text-left px-3 py-2 text-xs hover:bg-canvas text-text flex items-center justify-between">
+                                    <span>Selesai</span>
+                                    <x-icon name="check" :size="14" class="text-[#2563EB]" x-show="selectedStatusFilter === 'completed'" />
+                                </button>
+                                <button type="button" @click="selectedStatusFilter = 'in_progress'; statusDropdownOpen = false" class="w-full text-left px-3 py-2 text-xs hover:bg-canvas text-text flex items-center justify-between">
+                                    <span>Dalam Proses</span>
+                                    <x-icon name="check" :size="14" class="text-[#2563EB]" x-show="selectedStatusFilter === 'in_progress'" />
+                                </button>
+                                <button type="button" @click="selectedStatusFilter = 'locked'; statusDropdownOpen = false" class="w-full text-left px-3 py-2 text-xs hover:bg-canvas text-text flex items-center justify-between">
+                                    <span>Terkunci</span>
+                                    <x-icon name="check" :size="14" class="text-[#2563EB]" x-show="selectedStatusFilter === 'locked'" />
+                                </button>
+                            </div>
                         </div>
 
                     </div>
@@ -722,7 +472,7 @@
                                 <x-icon name="file-text" :size="13" />
                             </div>
                             <div class="mt-2">
-                                <span class="text-lg font-bold text-text tabular-nums leading-none block">14</span>
+                                <span class="text-lg font-bold text-text tabular-nums leading-none block">{{ $summary['total_materials'] }}</span>
                                 <span class="text-[10px] text-text-muted mt-1 block truncate">Total Materi</span>
                             </div>
                         </div>
@@ -733,7 +483,7 @@
                                 <x-icon name="check" :size="13" />
                             </div>
                             <div class="mt-2">
-                                <span class="text-lg font-bold text-text tabular-nums leading-none block">5</span>
+                                <span class="text-lg font-bold text-text tabular-nums leading-none block">{{ $summary['completed_materials'] }}</span>
                                 <span class="text-[10px] text-text-muted mt-1 block truncate">Selesai</span>
                             </div>
                         </div>
@@ -744,7 +494,7 @@
                                 <x-icon name="clock" :size="13" />
                             </div>
                             <div class="mt-2">
-                                <span class="text-lg font-bold text-text tabular-nums leading-none block">6</span>
+                                <span class="text-lg font-bold text-text tabular-nums leading-none block">{{ $summary['in_progress_materials'] }}</span>
                                 <span class="text-[10px] text-text-muted mt-1 block truncate">Dalam Proses</span>
                             </div>
                         </div>
@@ -755,7 +505,7 @@
                                 <x-icon name="lock" :size="13" />
                             </div>
                             <div class="mt-2">
-                                <span class="text-lg font-bold text-text tabular-nums leading-none block">3</span>
+                                <span class="text-lg font-bold text-text tabular-nums leading-none block">{{ $summary['locked_materials'] }}</span>
                                 <span class="text-[10px] text-text-muted mt-1 block truncate">Terkunci</span>
                             </div>
                         </div>
@@ -776,67 +526,21 @@
                     </div>
 
                     <div class="space-y-4">
-                        
-                        <!-- Aktivitas 1: Selesai Konsep Dasar OOP -->
-                        <div class="flex items-start gap-3">
-                            <div class="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
-                                <x-icon name="check-circle" :size="15" />
+                        @foreach($recentActivities as $act)
+                            <div class="flex items-start gap-3">
+                                <div class="w-7 h-7 rounded-full {{ $act['icon_bg'] }} flex items-center justify-center shrink-0 mt-0.5">
+                                    <x-icon name="{{ $act['icon'] }}" :size="14" />
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <h4 class="text-xs font-bold text-text truncate">
+                                        {{ $act['title'] }}
+                                    </h4>
+                                    <p class="text-[11px] text-text-muted mt-0.5">
+                                        {{ $act['meta'] }}
+                                    </p>
+                                </div>
                             </div>
-                            <div class="min-w-0 flex-1">
-                                <h4 class="text-xs font-bold text-text truncate">
-                                    Anda menyelesaikan materi Konsep Dasar OOP
-                                </h4>
-                                <p class="text-[11px] text-text-muted mt-0.5">
-                                    IF2101 &bull; 12 Sep 2026, 14:32
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Aktivitas 2: Video baru tersedia Desain Pola -->
-                        <div class="flex items-start gap-3">
-                            <div class="w-7 h-7 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
-                                <x-icon name="play" :size="13" class="fill-blue-600" />
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <h4 class="text-xs font-bold text-text truncate">
-                                    Video baru tersedia: Desain Pola
-                                </h4>
-                                <p class="text-[11px] text-text-muted mt-0.5">
-                                    IF2101 &bull; 12 Sep 2026, 10:15
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Aktivitas 3: Tugas Praktikum 1 telah dibuka -->
-                        <div class="flex items-start gap-3">
-                            <div class="w-7 h-7 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 mt-0.5">
-                                <x-icon name="calendar" :size="13" />
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <h4 class="text-xs font-bold text-text truncate">
-                                    Tugas Praktikum 1 telah dibuka
-                                </h4>
-                                <p class="text-[11px] text-text-muted mt-0.5">
-                                    IF2101 &bull; 11 Sep 2026, 16:45
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Aktivitas 4: Materi referensi Clean Code -->
-                        <div class="flex items-start gap-3">
-                            <div class="w-7 h-7 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
-                                <x-icon name="link" :size="13" />
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <h4 class="text-xs font-bold text-text truncate">
-                                    Materi referensi: Clean Code
-                                </h4>
-                                <p class="text-[11px] text-text-muted mt-0.5">
-                                    IF2101 &bull; 10 Sep 2026, 09:20
-                                </p>
-                            </div>
-                        </div>
-
+                        @endforeach
                     </div>
                 </x-ui.card>
 
@@ -860,7 +564,7 @@
                             <!-- Button Action -->
                             <button 
                                 type="button" 
-                                @click="aiDrawerOpen = true; aiPrompt = 'Tolong berikan ringkasan materi Konsep Dasar OOP dan 3 contoh soal evaluasi CPMK.'"
+                                @click="aiDrawerOpen = true; aiPrompt = 'Tolong berikan ringkasan materi untuk mata kuliah {{ $selectedClass?->course?->name ?? 'Pemrograman Berorientasi Objek' }} dan panduan pembelajarannya.'"
                                 class="mt-3.5 px-4 py-2 rounded-[6px] bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                             >
                                 <span>Coba Sekarang</span>
@@ -939,13 +643,15 @@
                                 <p class="text-[10px] text-text-muted">Dokumen PDF &bull; 2.4 MB &bull; RPS Verified</p>
                             </div>
                         </div>
-                        <a 
-                            href="#unduh" 
-                            class="px-3 py-1.5 rounded-[6px] bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-medium inline-flex items-center gap-1 transition-colors shadow-2xs"
-                        >
-                            <x-icon name="download" :size="13" />
-                            <span>Unduh Materi</span>
-                        </a>
+                        <template x-if="selectedMaterial?.ulid">
+                            <a 
+                                :href="'/app/materials/' + selectedMaterial.ulid + '/view'" 
+                                class="px-3 py-1.5 rounded-[6px] bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-medium inline-flex items-center gap-1 transition-colors shadow-2xs"
+                            >
+                                <x-icon name="external-link" :size="13" />
+                                <span>Buka Materi</span>
+                            </a>
+                        </template>
                     </div>
                 </div>
 
@@ -959,13 +665,24 @@
                             x-text="selectedMaterial?.status"
                         ></span>
                     </div>
-                    <button 
-                        type="button" 
-                        @click="viewerModalOpen = false" 
-                        class="px-4 py-2 rounded-[6px] border border-line bg-surface hover:bg-canvas text-xs font-semibold text-text cursor-pointer transition-colors shadow-2xs"
-                    >
-                        Tutup
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <template x-if="selectedMaterial?.ulid">
+                            <a 
+                                :href="'/app/materials/' + selectedMaterial.ulid + '/view'" 
+                                class="px-4 py-2 rounded-[6px] bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs transition-colors"
+                            >
+                                <span>Buka di Halaman Penuh</span>
+                                <x-icon name="arrow-right" :size="13" />
+                            </a>
+                        </template>
+                        <button 
+                            type="button" 
+                            @click="viewerModalOpen = false" 
+                            class="px-4 py-2 rounded-[6px] border border-line bg-surface hover:bg-canvas text-xs font-semibold text-text cursor-pointer transition-colors shadow-2xs"
+                        >
+                            Tutup
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
