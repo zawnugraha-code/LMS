@@ -292,6 +292,12 @@ class CanonicalStudentSeeder extends Seeder
                 ['class_id' => $class->id, 'user_id' => $studentArya->id],
                 ['status' => 'completed', 'final_score' => $item['score'], 'letter_grade' => $item['letter']]
             );
+            if ($legacyStudent) {
+                Enrollment::firstOrCreate(
+                    ['class_id' => $class->id, 'user_id' => $legacyStudent->id],
+                    ['status' => 'completed', 'final_score' => $item['score'], 'letter_grade' => $item['letter']]
+                );
+            }
         }
 
         $historyS2 = [
@@ -317,6 +323,12 @@ class CanonicalStudentSeeder extends Seeder
                 ['class_id' => $class->id, 'user_id' => $studentArya->id],
                 ['status' => 'completed', 'final_score' => $item['score'], 'letter_grade' => $item['letter']]
             );
+            if ($legacyStudent) {
+                Enrollment::firstOrCreate(
+                    ['class_id' => $class->id, 'user_id' => $legacyStudent->id],
+                    ['status' => 'completed', 'final_score' => $item['score'], 'letter_grade' => $item['letter']]
+                );
+            }
         }
 
         // ==========================================
@@ -507,6 +519,17 @@ class CanonicalStudentSeeder extends Seeder
                     'letter_grade' => $data['letter'],
                 ]
             );
+
+            if ($legacyStudent) {
+                Enrollment::updateOrCreate(
+                    ['class_id' => $class->id, 'user_id' => $legacyStudent->id],
+                    [
+                        'status' => $isLocked ? 'upcoming' : 'enrolled',
+                        'final_score' => $data['score'],
+                        'letter_grade' => $data['letter'],
+                    ]
+                );
+            }
 
             // 14 Pertemuan per Kelas
             Meeting::where('class_id', $class->id)->delete();

@@ -47,10 +47,10 @@
                         <span class="text-xs font-medium text-text-muted">IPK Semester Ini</span>
                     </div>
                     <div class="mt-2.5">
-                        <span class="text-2xl font-bold text-text tabular-nums leading-none block">3.72</span>
+                        <span class="text-2xl font-bold text-text tabular-nums leading-none block">{{ $summary['gpa'] }}</span>
                         <div class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 mt-2">
                             <x-icon name="arrow-up" :size="12" />
-                            <span>0.18 dari semester lalu</span>
+                            <span>{{ $summary['gpa_change_label'] }}</span>
                         </div>
                     </div>
                 </div>
@@ -65,14 +65,14 @@
                     </div>
                     <div class="mt-2.5">
                         <div class="flex items-baseline">
-                            <span class="text-2xl font-bold text-text tabular-nums leading-none">18</span>
-                            <span class="text-xs text-text-muted ml-1.5 font-normal">/ 24 SKS</span>
+                            <span class="text-2xl font-bold text-text tabular-nums leading-none">{{ $summary['credits_taken'] }}</span>
+                            <span class="text-xs text-text-muted ml-1.5 font-normal">/ {{ $summary['credits_max'] }} SKS</span>
                         </div>
                         <div class="flex items-center gap-2 mt-2.5">
                             <div class="w-full h-1 bg-slate-100 rounded-full overflow-hidden flex-1">
-                                <div class="h-full bg-[#2563EB] rounded-full" style="width: 75%;"></div>
+                                <div class="h-full bg-[#2563EB] rounded-full" style="width: {{ $summary['credits_percent'] }}%;"></div>
                             </div>
-                            <span class="text-[11px] font-medium text-text-muted shrink-0 tabular-nums">75%</span>
+                            <span class="text-[11px] font-medium text-text-muted shrink-0 tabular-nums">{{ $summary['credits_percent'] }}%</span>
                         </div>
                     </div>
                 </div>
@@ -87,14 +87,14 @@
                     </div>
                     <div class="mt-2.5">
                         <div class="flex items-baseline">
-                            <span class="text-2xl font-bold text-text tabular-nums leading-none">10</span>
-                            <span class="text-xs text-text-muted ml-1.5 font-normal">/ 12 mata kuliah</span>
+                            <span class="text-2xl font-bold text-text tabular-nums leading-none">{{ $summary['graded_count'] }}</span>
+                            <span class="text-xs text-text-muted ml-1.5 font-normal">/ {{ $summary['total_courses'] }} mata kuliah</span>
                         </div>
                         <div class="flex items-center gap-2 mt-2.5">
                             <div class="w-full h-1 bg-slate-100 rounded-full overflow-hidden flex-1">
-                                <div class="h-full bg-[#10B981] rounded-full" style="width: 83%;"></div>
+                                <div class="h-full bg-[#10B981] rounded-full" style="width: {{ $summary['graded_percent'] }}%;"></div>
                             </div>
-                            <span class="text-[11px] font-medium text-text-muted shrink-0 tabular-nums">83%</span>
+                            <span class="text-[11px] font-medium text-text-muted shrink-0 tabular-nums">{{ $summary['graded_percent'] }}%</span>
                         </div>
                     </div>
                 </div>
@@ -109,14 +109,14 @@
                     </div>
                     <div class="mt-2.5">
                         <div class="flex items-baseline">
-                            <span class="text-2xl font-bold text-text tabular-nums leading-none">2</span>
-                            <span class="text-xs text-text-muted ml-1.5 font-normal">/ 12 mata kuliah</span>
+                            <span class="text-2xl font-bold text-text tabular-nums leading-none">{{ $summary['unfinished_count'] }}</span>
+                            <span class="text-xs text-text-muted ml-1.5 font-normal">/ {{ $summary['total_courses'] }} mata kuliah</span>
                         </div>
                         <div class="flex items-center gap-2 mt-2.5">
                             <div class="w-full h-1 bg-slate-100 rounded-full overflow-hidden flex-1">
-                                <div class="h-full bg-[#F59E0B] rounded-full" style="width: 17%;"></div>
+                                <div class="h-full bg-[#F59E0B] rounded-full" style="width: {{ $summary['unfinished_percent'] }}%;"></div>
                             </div>
-                            <span class="text-[11px] font-medium text-text-muted shrink-0 tabular-nums">17%</span>
+                            <span class="text-[11px] font-medium text-text-muted shrink-0 tabular-nums">{{ $summary['unfinished_percent'] }}%</span>
                         </div>
                     </div>
                 </div>
@@ -144,7 +144,7 @@
                         <!-- Dropdown Semester (Kanan) -->
                         <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-[6px] border border-line bg-surface text-xs font-medium text-text shadow-2xs cursor-pointer hover:bg-canvas transition-colors self-start sm:self-auto">
                             <x-icon name="calendar" :size="14" class="text-text-muted" />
-                            <span>Semester 3 (Ganjil 2026/2027)</span>
+                            <span>{{ $activeTerm->name ?? 'Semester 3 (Ganjil 2026/2027)' }}</span>
                             <x-icon name="chevron-down" :size="12" class="text-text-muted" />
                         </div>
                     </div>
@@ -251,507 +251,70 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-line/60 text-xs text-text">
-                                
-                                <!-- Baris 1: IF2101 - 92.00 - A -->
-                                <tr class="hover:bg-canvas/40 transition-colors">
-                                    <td class="py-2.5 px-3 text-text-muted tabular-nums">1</td>
-                                    <td class="py-2.5 px-3 font-medium text-text-muted whitespace-nowrap">IF2101</td>
-                                    <td class="py-2.5 px-3 font-medium text-text max-w-xs truncate">Pemrograman Berorientasi Objek & Desain Pola</td>
-                                    <td class="py-2.5 px-3 text-center tabular-nums">3</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold text-emerald-700 bg-emerald-50 tabular-nums">
-                                            92.00
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-center font-bold text-emerald-700">A</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700">
-                                            Lulus
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-right whitespace-nowrap">
-                                        <button 
-                                            type="button"
-                                            @click="openDetail({
-                                                no: 1,
-                                                code: 'IF2101',
-                                                name: 'Pemrograman Berorientasi Objek & Desain Pola',
-                                                sks: 3,
-                                                score: '92.00',
-                                                grade: 'A',
-                                                status: 'Lulus',
-                                                lecturer: 'Prof. Dr. Budi Rahardjo, Ph.D.',
-                                                assignmentsScore: '94.00',
-                                                quizzesScore: '90.00',
-                                                midtermScore: '92.50',
-                                                finalScore: '91.50'
-                                            })"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-[#2563EB] text-xs font-medium transition-colors cursor-pointer"
-                                        >
-                                            <span>Lihat Detail</span>
-                                            <x-icon name="chevron-right" :size="11" />
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <!-- Baris 2: IF2102 - 88.50 - A -->
-                                <tr class="hover:bg-canvas/40 transition-colors">
-                                    <td class="py-2.5 px-3 text-text-muted tabular-nums">2</td>
-                                    <td class="py-2.5 px-3 font-medium text-text-muted whitespace-nowrap">IF2102</td>
-                                    <td class="py-2.5 px-3 font-medium text-text max-w-xs truncate">Basis Data & Sistem Terdistribusi</td>
-                                    <td class="py-2.5 px-3 text-center tabular-nums">3</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold text-emerald-700 bg-emerald-50 tabular-nums">
-                                            88.50
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-center font-bold text-emerald-700">A</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700">
-                                            Lulus
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-right whitespace-nowrap">
-                                        <button 
-                                            type="button"
-                                            @click="openDetail({
-                                                no: 2,
-                                                code: 'IF2102',
-                                                name: 'Basis Data & Sistem Terdistribusi',
-                                                sks: 3,
-                                                score: '88.50',
-                                                grade: 'A',
-                                                status: 'Lulus',
-                                                lecturer: 'Dr. Ir. Hendra Gunawan, M.T.',
-                                                assignmentsScore: '90.00',
-                                                quizzesScore: '86.00',
-                                                midtermScore: '88.00',
-                                                finalScore: '90.00'
-                                            })"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-[#2563EB] text-xs font-medium transition-colors cursor-pointer"
-                                        >
-                                            <span>Lihat Detail</span>
-                                            <x-icon name="chevron-right" :size="11" />
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <!-- Baris 3: IF2103 - 85.00 - A- -->
-                                <tr class="hover:bg-canvas/40 transition-colors">
-                                    <td class="py-2.5 px-3 text-text-muted tabular-nums">3</td>
-                                    <td class="py-2.5 px-3 font-medium text-text-muted whitespace-nowrap">IF2103</td>
-                                    <td class="py-2.5 px-3 font-medium text-text max-w-xs truncate">Rancang Bangun Mini Core Banking System (OOP)</td>
-                                    <td class="py-2.5 px-3 text-center tabular-nums">3</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold text-emerald-700 bg-emerald-50 tabular-nums">
-                                            85.00
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-center font-bold text-emerald-700">A-</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700">
-                                            Lulus
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-right whitespace-nowrap">
-                                        <button 
-                                            type="button"
-                                            @click="openDetail({
-                                                no: 3,
-                                                code: 'IF2103',
-                                                name: 'Rancang Bangun Mini Core Banking System (OOP)',
-                                                sks: 3,
-                                                score: '85.00',
-                                                grade: 'A-',
-                                                status: 'Lulus',
-                                                lecturer: 'Prof. Dr. Budi Rahardjo, Ph.D.',
-                                                assignmentsScore: '86.00',
-                                                quizzesScore: '84.00',
-                                                midtermScore: '85.00',
-                                                finalScore: '85.00'
-                                            })"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-[#2563EB] text-xs font-medium transition-colors cursor-pointer"
-                                        >
-                                            <span>Lihat Detail</span>
-                                            <x-icon name="chevron-right" :size="11" />
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <!-- Baris 4: IF2104 - 80.00 - A- -->
-                                <tr class="hover:bg-canvas/40 transition-colors">
-                                    <td class="py-2.5 px-3 text-text-muted tabular-nums">4</td>
-                                    <td class="py-2.5 px-3 font-medium text-text-muted whitespace-nowrap">IF2104</td>
-                                    <td class="py-2.5 px-3 font-medium text-text max-w-xs truncate">Jaringan Komputer</td>
-                                    <td class="py-2.5 px-3 text-center tabular-nums">3</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold text-emerald-700 bg-emerald-50 tabular-nums">
-                                            80.00
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-center font-bold text-emerald-700">A-</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700">
-                                            Lulus
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-right whitespace-nowrap">
-                                        <button 
-                                            type="button"
-                                            @click="openDetail({
-                                                no: 4,
-                                                code: 'IF2104',
-                                                name: 'Jaringan Komputer',
-                                                sks: 3,
-                                                score: '80.00',
-                                                grade: 'A-',
-                                                status: 'Lulus',
-                                                lecturer: 'Dra. Endang Lestari, M.Si.',
-                                                assignmentsScore: '82.00',
-                                                quizzesScore: '78.00',
-                                                midtermScore: '80.00',
-                                                finalScore: '80.00'
-                                            })"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-[#2563EB] text-xs font-medium transition-colors cursor-pointer"
-                                        >
-                                            <span>Lihat Detail</span>
-                                            <x-icon name="chevron-right" :size="11" />
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <!-- Baris 5: IF2105 - 78.50 - B+ -->
-                                <tr class="hover:bg-canvas/40 transition-colors">
-                                    <td class="py-2.5 px-3 text-text-muted tabular-nums">5</td>
-                                    <td class="py-2.5 px-3 font-medium text-text-muted whitespace-nowrap">IF2105</td>
-                                    <td class="py-2.5 px-3 font-medium text-text max-w-xs truncate">Arsitektur & Organisasi Komputer</td>
-                                    <td class="py-2.5 px-3 text-center tabular-nums">3</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold text-emerald-700 bg-emerald-50 tabular-nums">
-                                            78.50
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-center font-bold text-text">B+</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700">
-                                            Lulus
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-right whitespace-nowrap">
-                                        <button 
-                                            type="button"
-                                            @click="openDetail({
-                                                no: 5,
-                                                code: 'IF2105',
-                                                name: 'Arsitektur & Organisasi Komputer',
-                                                sks: 3,
-                                                score: '78.50',
-                                                grade: 'B+',
-                                                status: 'Lulus',
-                                                lecturer: 'Dr. Ahmad Hidayat, M.Kom.',
-                                                assignmentsScore: '80.00',
-                                                quizzesScore: '76.00',
-                                                midtermScore: '78.00',
-                                                finalScore: '80.00'
-                                            })"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-[#2563EB] text-xs font-medium transition-colors cursor-pointer"
-                                        >
-                                            <span>Lihat Detail</span>
-                                            <x-icon name="chevron-right" :size="11" />
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <!-- Baris 6: IF2106 - 75.00 - B+ -->
-                                <tr class="hover:bg-canvas/40 transition-colors">
-                                    <td class="py-2.5 px-3 text-text-muted tabular-nums">6</td>
-                                    <td class="py-2.5 px-3 font-medium text-text-muted whitespace-nowrap">IF2106</td>
-                                    <td class="py-2.5 px-3 font-medium text-text max-w-xs truncate">Keamanan Sistem Informasi</td>
-                                    <td class="py-2.5 px-3 text-center tabular-nums">3</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold text-emerald-700 bg-emerald-50 tabular-nums">
-                                            75.00
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-center font-bold text-text">B+</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700">
-                                            Lulus
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-right whitespace-nowrap">
-                                        <button 
-                                            type="button"
-                                            @click="openDetail({
-                                                no: 6,
-                                                code: 'IF2106',
-                                                name: 'Keamanan Sistem Informasi',
-                                                sks: 3,
-                                                score: '75.00',
-                                                grade: 'B+',
-                                                status: 'Lulus',
-                                                lecturer: 'Prof. Dr. Budi Rahardjo, Ph.D.',
-                                                assignmentsScore: '78.00',
-                                                quizzesScore: '72.00',
-                                                midtermScore: '75.00',
-                                                finalScore: '75.00'
-                                            })"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-[#2563EB] text-xs font-medium transition-colors cursor-pointer"
-                                        >
-                                            <span>Lihat Detail</span>
-                                            <x-icon name="chevron-right" :size="11" />
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <!-- Baris 7: IF2107 - 72.50 - B -->
-                                <tr class="hover:bg-canvas/40 transition-colors">
-                                    <td class="py-2.5 px-3 text-text-muted tabular-nums">7</td>
-                                    <td class="py-2.5 px-3 font-medium text-text-muted whitespace-nowrap">IF2107</td>
-                                    <td class="py-2.5 px-3 font-medium text-text max-w-xs truncate">Pemrograman Web</td>
-                                    <td class="py-2.5 px-3 text-center tabular-nums">3</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold text-emerald-700 bg-emerald-50 tabular-nums">
-                                            72.50
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-center font-bold text-text">B</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700">
-                                            Lulus
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-right whitespace-nowrap">
-                                        <button 
-                                            type="button"
-                                            @click="openDetail({
-                                                no: 7,
-                                                code: 'IF2107',
-                                                name: 'Pemrograman Web',
-                                                sks: 3,
-                                                score: '72.50',
-                                                grade: 'B',
-                                                status: 'Lulus',
-                                                lecturer: 'Dr. Ir. Hendra Gunawan, M.T.',
-                                                assignmentsScore: '75.00',
-                                                quizzesScore: '70.00',
-                                                midtermScore: '72.00',
-                                                finalScore: '73.00'
-                                            })"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-[#2563EB] text-xs font-medium transition-colors cursor-pointer"
-                                        >
-                                            <span>Lihat Detail</span>
-                                            <x-icon name="chevron-right" :size="11" />
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <!-- Baris 8: IF2108 - 70.00 - B -->
-                                <tr class="hover:bg-canvas/40 transition-colors">
-                                    <td class="py-2.5 px-3 text-text-muted tabular-nums">8</td>
-                                    <td class="py-2.5 px-3 font-medium text-text-muted whitespace-nowrap">IF2108</td>
-                                    <td class="py-2.5 px-3 font-medium text-text max-w-xs truncate">Manajemen Proyek TI</td>
-                                    <td class="py-2.5 px-3 text-center tabular-nums">2</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold text-emerald-700 bg-emerald-50 tabular-nums">
-                                            70.00
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-center font-bold text-text">B</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700">
-                                            Lulus
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-right whitespace-nowrap">
-                                        <button 
-                                            type="button"
-                                            @click="openDetail({
-                                                no: 8,
-                                                code: 'IF2108',
-                                                name: 'Manajemen Proyek TI',
-                                                sks: 2,
-                                                score: '70.00',
-                                                grade: 'B',
-                                                status: 'Lulus',
-                                                lecturer: 'Rian Permana',
-                                                assignmentsScore: '72.00',
-                                                quizzesScore: '68.00',
-                                                midtermScore: '70.00',
-                                                finalScore: '70.00'
-                                            })"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-[#2563EB] text-xs font-medium transition-colors cursor-pointer"
-                                        >
-                                            <span>Lihat Detail</span>
-                                            <x-icon name="chevron-right" :size="11" />
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <!-- Baris 9: IF2109 - 68.50 - B- -->
-                                <tr class="hover:bg-canvas/40 transition-colors">
-                                    <td class="py-2.5 px-3 text-text-muted tabular-nums">9</td>
-                                    <td class="py-2.5 px-3 font-medium text-text-muted whitespace-nowrap">IF2109</td>
-                                    <td class="py-2.5 px-3 font-medium text-text max-w-xs truncate">Matematika Diskrit</td>
-                                    <td class="py-2.5 px-3 text-center tabular-nums">3</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold text-emerald-700 bg-emerald-50 tabular-nums">
-                                            68.50
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-center font-bold text-text">B-</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700">
-                                            Lulus
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-right whitespace-nowrap">
-                                        <button 
-                                            type="button"
-                                            @click="openDetail({
-                                                no: 9,
-                                                code: 'IF2109',
-                                                name: 'Matematika Diskrit',
-                                                sks: 3,
-                                                score: '68.50',
-                                                grade: 'B-',
-                                                status: 'Lulus',
-                                                lecturer: 'Dra. Endang Lestari, M.Si.',
-                                                assignmentsScore: '70.00',
-                                                quizzesScore: '66.00',
-                                                midtermScore: '68.00',
-                                                finalScore: '70.00'
-                                            })"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-[#2563EB] text-xs font-medium transition-colors cursor-pointer"
-                                        >
-                                            <span>Lihat Detail</span>
-                                            <x-icon name="chevron-right" :size="11" />
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <!-- Baris 10: IF2110 - 65.00 - B- -->
-                                <tr class="hover:bg-canvas/40 transition-colors">
-                                    <td class="py-2.5 px-3 text-text-muted tabular-nums">10</td>
-                                    <td class="py-2.5 px-3 font-medium text-text-muted whitespace-nowrap">IF2110</td>
-                                    <td class="py-2.5 px-3 font-medium text-text max-w-xs truncate">Sistem Operasi</td>
-                                    <td class="py-2.5 px-3 text-center tabular-nums">3</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold text-emerald-700 bg-emerald-50 tabular-nums">
-                                            65.00
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-center font-bold text-text">B-</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700">
-                                            Lulus
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-right whitespace-nowrap">
-                                        <button 
-                                            type="button"
-                                            @click="openDetail({
-                                                no: 10,
-                                                code: 'IF2110',
-                                                name: 'Sistem Operasi',
-                                                sks: 3,
-                                                score: '65.00',
-                                                grade: 'B-',
-                                                status: 'Lulus',
-                                                lecturer: 'Dr. Ahmad Hidayat, M.Kom.',
-                                                assignmentsScore: '68.00',
-                                                quizzesScore: '62.00',
-                                                midtermScore: '65.00',
-                                                finalScore: '65.00'
-                                            })"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-[#2563EB] text-xs font-medium transition-colors cursor-pointer"
-                                        >
-                                            <span>Lihat Detail</span>
-                                            <x-icon name="chevron-right" :size="11" />
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <!-- Baris 11: IF2111 - 62.00 - C+ -->
-                                <tr class="hover:bg-canvas/40 transition-colors">
-                                    <td class="py-2.5 px-3 text-text-muted tabular-nums">11</td>
-                                    <td class="py-2.5 px-3 font-medium text-text-muted whitespace-nowrap">IF2111</td>
-                                    <td class="py-2.5 px-3 font-medium text-text max-w-xs truncate">Kecerdasan Buatan</td>
-                                    <td class="py-2.5 px-3 text-center tabular-nums">3</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold text-emerald-700 bg-emerald-50 tabular-nums">
-                                            62.00
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-center font-bold text-text">C+</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700">
-                                            Lulus
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-right whitespace-nowrap">
-                                        <button 
-                                            type="button"
-                                            @click="openDetail({
-                                                no: 11,
-                                                code: 'IF2111',
-                                                name: 'Kecerdasan Buatan',
-                                                sks: 3,
-                                                score: '62.00',
-                                                grade: 'C+',
-                                                status: 'Lulus',
-                                                lecturer: 'Prof. Dr. Budi Rahardjo, Ph.D.',
-                                                assignmentsScore: '65.00',
-                                                quizzesScore: '60.00',
-                                                midtermScore: '62.00',
-                                                finalScore: '61.00'
-                                            })"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-[#2563EB] text-xs font-medium transition-colors cursor-pointer"
-                                        >
-                                            <span>Lihat Detail</span>
-                                            <x-icon name="chevron-right" :size="11" />
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <!-- Baris 12: IF2112 - Belum Dinilai -->
-                                <tr class="hover:bg-canvas/40 transition-colors">
-                                    <td class="py-2.5 px-3 text-text-muted tabular-nums">12</td>
-                                    <td class="py-2.5 px-3 font-medium text-text-muted whitespace-nowrap">IF2112</td>
-                                    <td class="py-2.5 px-3 font-medium text-text max-w-xs truncate">Pengembangan Aplikasi Mobile</td>
-                                    <td class="py-2.5 px-3 text-center tabular-nums">3</td>
-                                    <td class="py-2.5 px-3 text-center text-text-muted">-</td>
-                                    <td class="py-2.5 px-3 text-center text-text-muted">-</td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700">
-                                            Belum Dinilai
-                                        </span>
-                                    </td>
-                                    <td class="py-2.5 px-3 text-right whitespace-nowrap">
-                                        <button 
-                                            type="button"
-                                            @click="openDetail({
-                                                no: 12,
-                                                code: 'IF2112',
-                                                name: 'Pengembangan Aplikasi Mobile',
-                                                sks: 3,
-                                                score: '-',
-                                                grade: '-',
-                                                status: 'Sedang Berlangsung',
-                                                lecturer: 'Dr. Ir. Hendra Gunawan, M.T.',
-                                                assignmentsScore: 'Dalam Proses',
-                                                quizzesScore: 'Dalam Proses',
-                                                midtermScore: 'Belum Dilaksanakan',
-                                                finalScore: 'Belum Dilaksanakan'
-                                            })"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-[#2563EB] text-xs font-medium transition-colors cursor-pointer"
-                                        >
-                                            <span>Lihat Detail</span>
-                                            <x-icon name="chevron-right" :size="11" />
-                                        </button>
-                                    </td>
-                                </tr>
-
+                                @forelse($grades as $item)
+                                    <tr 
+                                        x-show="activeSemester === 'all' || activeSemester === '{{ $item['semester'] }}'"
+                                        class="hover:bg-canvas/40 transition-colors"
+                                    >
+                                        <td class="py-2.5 px-3 text-text-muted tabular-nums">{{ $item['no'] }}</td>
+                                        <td class="py-2.5 px-3 font-medium text-text-muted whitespace-nowrap">{{ $item['course_code'] }}</td>
+                                        <td class="py-2.5 px-3 font-medium text-text max-w-xs truncate">{{ $item['course_name'] }}</td>
+                                        <td class="py-2.5 px-3 text-center tabular-nums">{{ $item['credits'] }}</td>
+                                        <td class="py-2.5 px-3 text-center whitespace-nowrap">
+                                            @if($item['final_score'] !== null)
+                                                <span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold text-emerald-700 bg-emerald-50 tabular-nums">
+                                                    {{ $item['final_score_display'] }}
+                                                </span>
+                                            @else
+                                                <span class="text-text-muted">-</span>
+                                            @endif
+                                        </td>
+                                        <td class="py-2.5 px-3 text-center font-bold {{ $item['letter_grade'] && in_array($item['letter_grade'], ['A', 'A-']) ? 'text-emerald-700' : 'text-text' }}">
+                                            {{ $item['letter_grade_display'] }}
+                                        </td>
+                                        <td class="py-2.5 px-3 text-center whitespace-nowrap">
+                                            @if($item['final_score'] !== null)
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700">
+                                                    {{ $item['status_label'] }}
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700">
+                                                    {{ $item['status_label'] }}
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td class="py-2.5 px-3 text-right whitespace-nowrap">
+                                            <button 
+                                                type="button"
+                                                @click="openDetail({
+                                                    no: {{ $item['no'] }},
+                                                    code: '{{ $item['course_code'] }}',
+                                                    name: '{{ addslashes($item['course_name']) }}',
+                                                    sks: {{ $item['credits'] }},
+                                                    score: '{{ $item['final_score_display'] }}',
+                                                    grade: '{{ $item['letter_grade_display'] }}',
+                                                    status: '{{ $item['status_label'] }}',
+                                                    lecturer: '{{ addslashes($item['lecturer_name']) }}',
+                                                    assignmentsScore: '{{ $item['assignments_score'] }}',
+                                                    quizzesScore: '{{ $item['quizzes_score'] }}',
+                                                    midtermScore: '{{ $item['midterm_score'] }}',
+                                                    finalScore: '{{ $item['final_score_exam'] }}',
+                                                    detailUrl: '{{ $item['detail_url'] }}'
+                                                })"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-[6px] border border-blue-200 bg-blue-50/50 hover:bg-blue-100/70 text-[#2563EB] text-xs font-medium transition-colors cursor-pointer"
+                                            >
+                                                <span>Lihat Detail</span>
+                                                <x-icon name="chevron-right" :size="11" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="8" class="py-8 text-center text-xs text-text-muted">
+                                            Belum ada mata kuliah yang dinilai untuk periode ini.
+                                        </td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -759,7 +322,7 @@
                     <!-- Footer Tabel: Info Jumlah & Pagination -->
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-line/60 mt-2">
                         <span class="text-xs text-text-muted">
-                            Menampilkan 1-12 dari 12 mata kuliah
+                            Menampilkan 1-{{ count($grades) }} dari {{ count($grades) }} mata kuliah
                         </span>
 
                         <div class="inline-flex items-center gap-1">
@@ -1147,13 +710,20 @@
 
                     <div class="pt-3 border-t border-line flex items-center justify-between">
                         <span class="text-[11px] text-text-muted">Transkrip sementara resmi Arunika</span>
-                        <button 
-                            type="button" 
-                            @click="detailModalOpen = false" 
-                            class="px-4 py-2 rounded-[6px] bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold transition-colors shadow-2xs"
-                        >
-                            Tutup
-                        </button>
+                        <div class="inline-flex items-center gap-2">
+                            <template x-if="selectedCourse?.detailUrl">
+                                <a :href="selectedCourse.detailUrl" class="px-3 py-2 rounded-[6px] border border-line bg-surface hover:bg-canvas text-text font-semibold text-xs transition-colors shadow-2xs">
+                                    Rincian Transkrip
+                                </a>
+                            </template>
+                            <button 
+                                type="button" 
+                                @click="detailModalOpen = false" 
+                                class="px-4 py-2 rounded-[6px] bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold transition-colors shadow-2xs"
+                            >
+                                Tutup
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
