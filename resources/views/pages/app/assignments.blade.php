@@ -51,7 +51,7 @@
                             <x-icon name="file-text" :size="18" />
                         </div>
                         <div>
-                            <span class="text-xl font-bold text-text block leading-none">8</span>
+                            <span class="text-xl font-bold text-text block leading-none">{{ $summary['active_tasks'] ?? 8 }}</span>
                             <span class="text-[11px] text-text-muted block mt-1 font-normal">Tugas Aktif</span>
                         </div>
                     </div>
@@ -65,7 +65,7 @@
                             <x-icon name="calendar" :size="18" />
                         </div>
                         <div>
-                            <span class="text-xl font-bold text-text block leading-none">3</span>
+                            <span class="text-xl font-bold text-text block leading-none">{{ $summary['upcoming_exams'] ?? 3 }}</span>
                             <span class="text-[11px] text-text-muted block mt-1 font-normal">Ujian Mendatang</span>
                         </div>
                     </div>
@@ -79,7 +79,7 @@
                             <x-icon name="check-circle" :size="18" />
                         </div>
                         <div>
-                            <span class="text-xl font-bold text-text block leading-none">5</span>
+                            <span class="text-xl font-bold text-text block leading-none">{{ $summary['completed_tasks'] ?? 5 }}</span>
                             <span class="text-[11px] text-text-muted block mt-1 font-normal">Tugas Selesai</span>
                         </div>
                     </div>
@@ -93,7 +93,7 @@
                             <x-icon name="clock" :size="18" />
                         </div>
                         <div>
-                            <span class="text-xl font-bold text-text block leading-none">1</span>
+                            <span class="text-xl font-bold text-text block leading-none">{{ $summary['late_tasks'] ?? 1 }}</span>
                             <span class="text-[11px] text-text-muted block mt-1 font-normal">Tugas Terlambat</span>
                         </div>
                     </div>
@@ -205,8 +205,9 @@
                 <div class="space-y-3.5">
                     
                     <!-- KARTU 1: IF2101 - Tugas 1: Latihan Class dan Object -->
+                    <!-- KARTU 1: IF2101 - Tugas 1: Latihan Class dan Object -->
                     <div 
-                        x-show="activeTab === 'semua' || activeTab === 'tugas'"
+                        x-show="(activeTab === 'semua' || activeTab === 'tugas') && (selectedCourse === 'all' || selectedCourse === 'IF2101')"
                         class="bg-surface border border-line rounded-[10px] p-5 shadow-2xs hover:border-slate-300 transition-colors relative flex flex-col md:flex-row md:items-center justify-between gap-4"
                     >
                         <button type="button" class="absolute top-4 right-4 text-text-subtle hover:text-text p-1 transition-colors">
@@ -225,10 +226,10 @@
                                 <h3 class="text-[15px] font-bold text-text mt-0.5 tracking-tight truncate">
                                     Tugas 1 - Latihan Class dan Object
                                 </h3>
-                                <div class="mt-2 inline-flex items-center gap-1.5 text-[11px] text-text-muted hover:text-[#2563EB] transition-colors cursor-pointer">
+                                <a href="{{ $cardTask1 ? route('assignments.download', $cardTask1) : '#' }}" class="mt-2 inline-flex items-center gap-1.5 text-[11px] text-text-muted hover:text-[#2563EB] transition-colors cursor-pointer">
                                     <x-icon name="file-text" :size="13" class="text-text-subtle" />
                                     <span>Panduan_Tugas1.pdf <span class="text-text-subtle">(2.4 MB)</span></span>
-                                </div>
+                                </a>
                             </div>
                         </div>
 
@@ -257,7 +258,7 @@
                                 <button 
                                     type="button"
                                     @click="openSubmission({
-                                        id: '{{ $assignments->first()?->id ?? 'assign-1' }}',
+                                        id: '{{ $cardTask1?->id ?? ($assignments->first()?->id ?? 'assign-1') }}',
                                         title: 'Tugas 1 - Latihan Class dan Object',
                                         course: 'IF2101 - Pemrograman Berorientasi Objek & Desain Pola',
                                         deadline: 'Jum, 26 Sep 2026, 23:59 WIB'
@@ -273,7 +274,7 @@
 
                     <!-- KARTU 2: IF2102 - Tugas 2: Normalisasi Database -->
                     <div 
-                        x-show="activeTab === 'semua' || activeTab === 'tugas'"
+                        x-show="(activeTab === 'semua' || activeTab === 'tugas') && (selectedCourse === 'all' || selectedCourse === 'IF2102')"
                         class="bg-surface border border-line rounded-[10px] p-5 shadow-2xs hover:border-slate-300 transition-colors relative flex flex-col md:flex-row md:items-center justify-between gap-4"
                     >
                         <button type="button" class="absolute top-4 right-4 text-text-subtle hover:text-text p-1 transition-colors">
@@ -292,10 +293,10 @@
                                 <h3 class="text-[15px] font-bold text-text mt-0.5 tracking-tight truncate">
                                     Tugas 2 - Normalisasi Database
                                 </h3>
-                                <div class="mt-2 inline-flex items-center gap-1.5 text-[11px] text-text-muted hover:text-[#2563EB] transition-colors cursor-pointer">
+                                <a href="{{ $cardTask2 ? route('assignments.download', $cardTask2) : '#' }}" class="mt-2 inline-flex items-center gap-1.5 text-[11px] text-text-muted hover:text-[#2563EB] transition-colors cursor-pointer">
                                     <x-icon name="file-text" :size="13" class="text-text-subtle" />
                                     <span>Soal_Tugas2.pdf <span class="text-text-subtle">(1.8 MB)</span></span>
-                                </div>
+                                </a>
                             </div>
                         </div>
 
@@ -324,7 +325,7 @@
                                 <button 
                                     type="button"
                                     @click="openSubmission({
-                                        id: '{{ $assignments->skip(1)->first()?->id ?? 'assign-2' }}',
+                                        id: '{{ $cardTask2?->id ?? ($assignments->skip(1)->first()?->id ?? 'assign-2') }}',
                                         title: 'Tugas 2 - Normalisasi Database',
                                         course: 'IF2102 - Basis Data & Sistem Terdistribusi',
                                         deadline: 'Sen, 29 Sep 2026, 23:59 WIB'
@@ -340,7 +341,7 @@
 
                     <!-- KARTU 3: IF2103 - Ujian Tengah Semester (UTS) (Purple) -->
                     <div 
-                        x-show="activeTab === 'semua' || activeTab === 'ujian'"
+                        x-show="(activeTab === 'semua' || activeTab === 'ujian') && (selectedCourse === 'all' || selectedCourse === 'IF2103')"
                         class="bg-surface border border-line rounded-[10px] p-5 shadow-2xs hover:border-slate-300 transition-colors relative flex flex-col md:flex-row md:items-center justify-between gap-4"
                     >
                         <button type="button" class="absolute top-4 right-4 text-text-subtle hover:text-text p-1 transition-colors">
@@ -391,6 +392,7 @@
                                 <button 
                                     type="button"
                                     @click="openDetail({
+                                        quiz_id: '{{ $cardQuiz1?->id ?? ($quizzes->first()?->id ?? 'quiz-1') }}',
                                         title: 'Ujian Tengah Semester (UTS)',
                                         course: 'IF2103 - Rancang Bangun Mini Core Banking System (OOP)',
                                         schedule: 'Rabu, 8 Oktober 2026 (08:00 - 10:00 WIB)',
@@ -408,7 +410,7 @@
 
                     <!-- KARTU 4: IF2104 - Tugas 1: Konfigurasi IP Address -->
                     <div 
-                        x-show="activeTab === 'semua' || activeTab === 'tugas'"
+                        x-show="(activeTab === 'semua' || activeTab === 'tugas') && (selectedCourse === 'all' || selectedCourse === 'IF2104')"
                         class="bg-surface border border-line rounded-[10px] p-5 shadow-2xs hover:border-slate-300 transition-colors relative flex flex-col md:flex-row md:items-center justify-between gap-4"
                     >
                         <button type="button" class="absolute top-4 right-4 text-text-subtle hover:text-text p-1 transition-colors">
@@ -427,10 +429,10 @@
                                 <h3 class="text-[15px] font-bold text-text mt-0.5 tracking-tight truncate">
                                     Tugas 1 - Konfigurasi IP Address
                                 </h3>
-                                <div class="mt-2 inline-flex items-center gap-1.5 text-[11px] text-text-muted hover:text-[#2563EB] transition-colors cursor-pointer">
+                                <a href="{{ $cardTask4 ? route('assignments.download', $cardTask4) : '#' }}" class="mt-2 inline-flex items-center gap-1.5 text-[11px] text-text-muted hover:text-[#2563EB] transition-colors cursor-pointer">
                                     <x-icon name="file-text" :size="13" class="text-text-subtle" />
                                     <span>Panduan_Tugas1.pdf <span class="text-text-subtle">(1.1 MB)</span></span>
-                                </div>
+                                </a>
                             </div>
                         </div>
 
@@ -459,7 +461,7 @@
                                 <button 
                                     type="button"
                                     @click="openSubmission({
-                                        id: 'assign-4',
+                                        id: '{{ $cardTask4?->id ?? ($assignments->skip(2)->first()?->id ?? 'assign-4') }}',
                                         title: 'Tugas 1 - Konfigurasi IP Address',
                                         course: 'IF2104 - Jaringan Komputer',
                                         deadline: 'Kam, 2 Okt 2026, 23:59 WIB'
@@ -475,7 +477,7 @@
 
                     <!-- KARTU 5: IF2105 - Tugas 3: Analisis Performa CPU -->
                     <div 
-                        x-show="activeTab === 'semua' || activeTab === 'tugas'"
+                        x-show="(activeTab === 'semua' || activeTab === 'tugas') && (selectedCourse === 'all' || selectedCourse === 'IF2105')"
                         class="bg-surface border border-line rounded-[10px] p-5 shadow-2xs hover:border-slate-300 transition-colors relative flex flex-col md:flex-row md:items-center justify-between gap-4"
                     >
                         <button type="button" class="absolute top-4 right-4 text-text-subtle hover:text-text p-1 transition-colors">
@@ -494,10 +496,10 @@
                                 <h3 class="text-[15px] font-bold text-text mt-0.5 tracking-tight truncate">
                                     Tugas 3 - Analisis Performa CPU
                                 </h3>
-                                <div class="mt-2 inline-flex items-center gap-1.5 text-[11px] text-text-muted hover:text-[#2563EB] transition-colors cursor-pointer">
+                                <a href="{{ $cardTask5 ? route('assignments.download', $cardTask5) : '#' }}" class="mt-2 inline-flex items-center gap-1.5 text-[11px] text-text-muted hover:text-[#2563EB] transition-colors cursor-pointer">
                                     <x-icon name="file-text" :size="13" class="text-text-subtle" />
                                     <span>Soal_Tugas3.pdf <span class="text-text-subtle">(2.0 MB)</span></span>
-                                </div>
+                                </a>
                             </div>
                         </div>
 
@@ -526,7 +528,7 @@
                                 <button 
                                     type="button"
                                     @click="openSubmission({
-                                        id: 'assign-5',
+                                        id: '{{ $cardTask5?->id ?? ($assignments->skip(3)->first()?->id ?? 'assign-5') }}',
                                         title: 'Tugas 3 - Analisis Performa CPU',
                                         course: 'IF2105 - Arsitektur & Organisasi Komputer',
                                         deadline: 'Sel, 7 Okt 2026, 23:59 WIB'
@@ -542,7 +544,7 @@
 
                     <!-- KARTU 6: IF2102 - Ujian Akhir Semester (UAS) (Purple) -->
                     <div 
-                        x-show="activeTab === 'semua' || activeTab === 'ujian'"
+                        x-show="(activeTab === 'semua' || activeTab === 'ujian') && (selectedCourse === 'all' || selectedCourse === 'IF2102')"
                         class="bg-surface border border-line rounded-[10px] p-5 shadow-2xs hover:border-slate-300 transition-colors relative flex flex-col md:flex-row md:items-center justify-between gap-4"
                     >
                         <button type="button" class="absolute top-4 right-4 text-text-subtle hover:text-text p-1 transition-colors">
@@ -593,6 +595,7 @@
                                 <button 
                                     type="button"
                                     @click="openDetail({
+                                        quiz_id: '{{ $cardQuiz2?->id ?? ($quizzes->skip(1)->first()?->id ?? 'quiz-2') }}',
                                         title: 'Ujian Akhir Semester (UAS)',
                                         course: 'IF2102 - Basis Data & Sistem Terdistribusi',
                                         schedule: 'Senin, 20 Oktober 2026 (08:00 - 10:00 WIB)',
@@ -610,7 +613,7 @@
 
                     <!-- KARTU TERLAMBAT (Muncul saat filter Terlambat aktif) -->
                     <div 
-                        x-show="activeTab === 'terlambat'" 
+                        x-show="activeTab === 'terlambat' && (selectedCourse === 'all' || selectedCourse === 'IF2101')" 
                         class="bg-surface border border-line rounded-[10px] p-5 shadow-2xs hover:border-slate-300 transition-colors relative flex flex-col md:flex-row md:items-center justify-between gap-4"
                         style="display: none;"
                     >
@@ -635,7 +638,7 @@
                             <button 
                                 type="button"
                                 @click="openSubmission({
-                                    id: 'assign-late',
+                                    id: '{{ $cardTaskLate?->id ?? ($assignments->last()?->id ?? 'assign-late') }}',
                                     title: 'Tugas Praktikum 0 - Environment Setup & Git Workflow',
                                     course: 'IF2101 - Pemrograman Berorientasi Objek',
                                     deadline: 'Terlambat (Pengumpulan Susulan)'
@@ -681,19 +684,14 @@
                                 x-transition.opacity.duration.100ms
                                 class="absolute left-0 right-0 mt-1 bg-surface border border-line rounded-[6px] shadow-card py-1 z-20 text-xs"
                                 style="display: none;"
-                            >
-                                <button type="button" @click="selectedCourse = 'all'; openCourse = false" class="w-full text-left px-3 py-1.5 hover:bg-canvas text-text">
+                                                        <button type="button" @click="selectedCourse = 'all'; openCourse = false" class="w-full text-left px-3 py-1.5 hover:bg-canvas text-text">
                                     Semua Mata Kuliah
                                 </button>
-                                <button type="button" @click="selectedCourse = 'IF2101 - Pemrograman Berorientasi Objek'; openCourse = false" class="w-full text-left px-3 py-1.5 hover:bg-canvas text-text truncate">
-                                    IF2101 - Pemrograman Berorientasi Objek
-                                </button>
-                                <button type="button" @click="selectedCourse = 'IF2102 - Basis Data & Sistem Terdistribusi'; openCourse = false" class="w-full text-left px-3 py-1.5 hover:bg-canvas text-text truncate">
-                                    IF2102 - Basis Data & Sistem Terdistribusi
-                                </button>
-                                <button type="button" @click="selectedCourse = 'IF2103 - Rekayasa Perangkat Lunak'; openCourse = false" class="w-full text-left px-3 py-1.5 hover:bg-canvas text-text truncate">
-                                    IF2103 - Rekayasa Perangkat Lunak
-                                </button>
+                                @foreach($enrolledClasses as $enrolled)
+                                    <button type="button" @click="selectedCourse = '{{ $enrolled->course->code }}'; openCourse = false" class="w-full text-left px-3 py-1.5 hover:bg-canvas text-text truncate">
+                                        {{ $enrolled->course->code }} - {{ $enrolled->course->name }}
+                                    </button>
+                                @endforeach
                             </div>
                         </div>
 
@@ -711,7 +709,7 @@
                             </div>
                             <div 
                                 x-show="openType" 
-                                @click.away="openType = false"
+                                @click.away="openType = false" 
                                 x-transition.opacity.duration.100ms
                                 class="absolute left-0 right-0 mt-1 bg-surface border border-line rounded-[6px] shadow-card py-1 z-20 text-xs"
                                 style="display: none;"
@@ -750,7 +748,17 @@
                         <button type="button" class="p-1 text-text-muted hover:text-text rounded hover:bg-canvas transition-colors cursor-pointer">
                             <x-icon name="chevron-left" :size="14" />
                         </button>
-                        <span>Oktober 2026</span>
+                        <div class="flex items-center gap-2">
+                            <span>Oktober 2026</span>
+                            <a 
+                                href="{{ route('assignments.calendar.ics') }}" 
+                                title="Ekspor Jadwal ke Google / Apple Calendar (.ics)" 
+                                class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-[#2563EB] hover:bg-blue-100 transition-colors"
+                            >
+                                <x-icon name="download" :size="11" />
+                                <span>.ics</span>
+                            </a>
+                        </div>
                         <button type="button" class="p-1 text-text-muted hover:text-text rounded hover:bg-canvas transition-colors cursor-pointer">
                             <x-icon name="chevron-right" :size="14" />
                         </button>
@@ -831,51 +839,28 @@
                     </h3>
 
                     <div class="space-y-4">
-                        <!-- Item 1: Tugas 2 - Normalisasi Database (Blue Dot) -->
-                        <div class="flex items-start gap-3">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#2563EB] mt-1 shrink-0"></span>
-                            <div class="min-w-0 flex-1">
-                                <h4 class="text-xs font-semibold text-text truncate">
-                                    Tugas 2 - Normalisasi Database
-                                </h4>
-                                <p class="text-[11px] text-text-muted mt-0.5 truncate">
-                                    IF2102 • Sen, 29 Sep 2026 • 23:59
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Item 2: UTS - Pemrograman Berorientasi Objek (Purple Dot) -->
-                        <div class="flex items-start gap-3">
-                            <span class="w-2.5 h-2.5 rounded-full bg-purple-600 mt-1 shrink-0"></span>
-                            <div class="min-w-0 flex-1">
-                                <h4 class="text-xs font-semibold text-text truncate">
-                                    UTS - Pemrograman Berorientasi Objek
-                                </h4>
-                                <p class="text-[11px] text-text-muted mt-0.5 truncate">
-                                    IF2103 • Rab, 8 Okt 2026 • 08:00
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Item 3: Tugas 1 - Konfigurasi IP Address (Blue Dot) -->
-                        <div class="flex items-start gap-3">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#2563EB] mt-1 shrink-0"></span>
-                            <div class="min-w-0 flex-1">
-                                <h4 class="text-xs font-semibold text-text truncate">
-                                    Tugas 1 - Konfigurasi IP Address
-                                </h4>
-                                <p class="text-[11px] text-text-muted mt-0.5 truncate">
-                                    IF2104 • Kam, 2 Okt 2026 • 23:59
-                                </p>
-                            </div>
-                        </div>
+                        @forelse($upcomingAssessments as $item)
+                            <a href="{{ $item['url'] }}" class="flex items-start gap-3 group">
+                                <span class="w-2.5 h-2.5 rounded-full mt-1 shrink-0" style="background-color: {{ $item['color'] }};"></span>
+                                <div class="min-w-0 flex-1">
+                                    <h4 class="text-xs font-semibold text-text group-hover:text-[#2563EB] transition-colors truncate">
+                                        {{ $item['title'] }}
+                                    </h4>
+                                    <p class="text-[11px] text-text-muted mt-0.5 truncate">
+                                        {{ $item['course'] }} • {{ $item['date_str'] }}
+                                    </p>
+                                </div>
+                            </a>
+                        @empty
+                            <p class="text-xs text-text-muted">Tidak ada tugas/ujian terdekat.</p>
+                        @endforelse
                     </div>
 
                     <!-- Footer: Lihat Semua -> -->
                     <div class="mt-4 pt-3.5 border-t border-line/60 text-center">
                         <a 
                             href="#semua" 
-                            @click.prevent="activeTab = 'semua'"
+                            @click.prevent="activeTab = 'semua'; selectedCourse = 'all'"
                             class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2563EB] hover:underline"
                         >
                             <span>Lihat Semua</span>
@@ -911,15 +896,24 @@
                 </div>
 
                 <form 
-                    action="{{ $assignments->first() ? route('assignments.submit', $assignments->first()) : '#' }}" 
+                    :action="'/app/assignments/' + (activeAssessment?.id || '{{ $assignments->first()?->id }}') + '/submit'" 
                     method="POST" 
                     enctype="multipart/form-data" 
                     class="p-5 space-y-4 text-xs"
                 >
                     @csrf
-                    <div>
-                        <label class="block font-medium text-text mb-1">Batas Waktu Pengumpulan</label>
-                        <p class="text-text-muted font-medium" x-text="activeAssessment?.deadline"></p>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="block font-medium text-text mb-1">Batas Waktu Pengumpulan</label>
+                            <p class="text-text-muted font-medium" x-text="activeAssessment?.deadline"></p>
+                        </div>
+                        <a 
+                            :href="'/app/assignments/' + activeAssessment?.id + '/submit'"
+                            class="text-[11px] font-semibold text-[#2563EB] hover:underline inline-flex items-center gap-1"
+                        >
+                            <span>Buka Lembar Kerja Penuh</span>
+                            <x-icon name="arrow-right" :size="12" />
+                        </a>
                     </div>
 
                     <div>
@@ -1007,19 +1001,26 @@
                         <p class="text-text mt-1 leading-relaxed" x-text="activeAssessment?.rules"></p>
                     </div>
 
-                    <div class="pt-3 border-t border-line flex items-center justify-end">
+                    <div class="pt-3 border-t border-line flex items-center justify-end gap-2.5">
                         <button 
                             type="button" 
                             @click="detailModalOpen = false" 
-                            class="px-4 py-2 rounded-[6px] bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold transition-colors"
+                            class="px-4 py-2 rounded-[6px] border border-line text-text font-medium hover:bg-canvas transition-colors"
                         >
-                            Mengerti & Tutup
+                            Tutup
                         </button>
+                        <a 
+                            :href="'/app/quizzes/' + (activeAssessment?.quiz_id || '{{ $quizzes->first()?->id }}') + '/attempt'"
+                            class="px-4 py-2 rounded-[6px] bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold transition-colors inline-flex items-center gap-1.5 shadow-2xs"
+                        >
+                            <span>Mulai Ujian Online (CBT)</span>
+                            <x-icon name="arrow-right" :size="13" />
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
 
+</div>
 @endsection

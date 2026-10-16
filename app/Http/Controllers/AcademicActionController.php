@@ -20,11 +20,24 @@ class AcademicActionController extends Controller
     public function submitAssignment(Request $request, Assignment $assignment): RedirectResponse
     {
         $request->validate([
-            'content' => 'required|string',
+            'content' => 'nullable|string',
             'file_url' => 'nullable|string|max:255',
+            'file' => 'nullable|file|max:25600',
+            'action' => 'nullable|string',
         ]);
 
         $user = Auth::user();
+        $isDraft = $request->input('action') === 'draft';
+        $status = $isDraft ? 'draft' : 'submitted';
+
+        $filePath = $request->input('file_url');
+        if ($request->hasFile('file')) {
+            $uploaded = $request->file('file');
+            $fileName = $user->identifier.'-'.time().'-'.$uploaded->getClientOriginalName();
+            $filePath = $uploaded->storeAs('submissions', $fileName, 'public');
+        } elseif (! $filePath) {
+            $filePath = '/submissions/'.$user->identifier.'-submission.zip';
+        }
 
         $submission = Submission::updateOrCreate(
             [
@@ -32,24 +45,35 @@ class AcademicActionController extends Controller
                 'user_id' => $user->id,
             ],
             [
-                'content' => $request->input('content'),
-                'file_path' => $request->input('file_url') ?: '/submissions/'.$user->identifier.'-submission.zip',
-                'status' => 'submitted',
-                'submitted_at' => now(),
+                'content' => $request->input('content') ?? '',
+                'file_path' => $filePath,
+                'status' => $status,
+                'submitted_at' => $isDraft ? null : now(),
             ]
         );
 
-        // Award XP for submitting assignment
-        XpLedger::create([
-            'user_id' => $user->id,
-            'class_id' => $assignment->class_id,
-            'amount' => config('arunika.gamification.xp_per_assignment_submit', 10),
-            'source_type' => 'assignment',
-            'source_id' => $assignment->id,
-            'description' => "Pengumpulan tugas: {$assignment->title}",
-        ]);
+        if (! $isDraft) {
+            // Award XP for submitting assignment if not already awarded
+            $hasXp = XpLedger::where('user_id', $user->id)
+                ->where('source_type', 'assignment')
+                ->where('source_id', $assignment->id)
+                ->exists();
 
-        return redirect()->back()->with('success', 'Tugas berhasil dikumpulkan! Anda mendapatkan +10 XP.');
+            if (! $hasXp) {
+                XpLedger::create([
+                    'user_id' => $user->id,
+                    'class_id' => $assignment->class_id,
+                    'amount' => config('arunika.gamification.xp_per_assignment_submit', 10),
+                    'source_type' => 'assignment',
+                    'source_id' => $assignment->id,
+                    'description' => "Pengumpulan tugas: {$assignment->title}",
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Tugas berhasil dikumpulkan! Anda mendapatkan +10 XP.');
+        }
+
+        return redirect()->back()->with('success', 'Draf jawaban tugas berhasil disimpan.');
     }
 
     /**

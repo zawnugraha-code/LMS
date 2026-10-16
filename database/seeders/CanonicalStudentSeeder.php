@@ -24,6 +24,7 @@ use App\Models\MaterialProgress;
 use App\Models\Meeting;
 use App\Models\OutcomeScore;
 use App\Models\Program;
+use App\Models\Question;
 use App\Models\Quiz;
 use App\Models\Submission;
 use App\Models\Term;
@@ -604,84 +605,301 @@ class CanonicalStudentSeeder extends Seeder
         // ==========================================
         // 9. TUGAS & UJIAN
         // ==========================================
-        $task1 = Assignment::firstOrCreate(
-            ['class_id' => $classPbo->id, 'title' => 'Tugas 1: Desain Arsitektur Class Diagram'],
-            [
-                'description' => 'Rancang class diagram untuk sistem perpustakaan kampus berbasis SOLID.',
-                'due_at' => now()->subDays(10),
-                'max_score' => 100.00,
-            ]
-        );
-        Submission::updateOrCreate(
-            ['assignment_id' => $task1->id, 'user_id' => $studentArya->id],
-            [
-                'status' => 'graded',
-                'score' => 95.00,
-                'feedback' => 'Arsitektur class diagram sangat rapi dan memenuhi prinsip SRP.',
-                'submitted_at' => now()->subDays(11),
-                'graded_at' => now()->subDays(9),
-                'graded_by' => $lecturers['budi']->id,
-            ]
-        );
+        // Clean existing assignments/quizzes for these classes to ensure exact canonical state
+        $enrolledClassIds = collect($classes)->pluck('id')->all();
+        Assignment::whereIn('class_id', $enrolledClassIds)->delete();
+        Quiz::whereIn('class_id', $enrolledClassIds)->delete();
 
-        $task2 = Assignment::firstOrCreate(
-            ['class_id' => $classPbo->id, 'title' => 'Tugas 2: Implementasi Design Pattern Factory'],
-            [
-                'description' => 'Implementasikan pola Factory Method untuk pembuatan objek pembayaran.',
-                'due_at' => now()->addDays(2)->setTime(23, 59),
-                'max_score' => 100.00,
-            ]
-        );
+        // ------------------------------------------
+        // A. 5 TUGAS SELESAI (Completed & Graded/Submitted)
+        // ------------------------------------------
+        $c1 = Assignment::create([
+            'class_id' => $classPbo->id,
+            'title' => 'Tugas 1: Desain Arsitektur Class Diagram',
+            'description' => 'Rancang class diagram untuk sistem perbankan kampus berbasis prinsip SOLID.',
+            'due_at' => now()->subDays(25),
+            'max_score' => 100.00,
+        ]);
+        Submission::create([
+            'assignment_id' => $c1->id,
+            'user_id' => $studentArya->id,
+            'status' => 'graded',
+            'score' => 95.00,
+            'feedback' => 'Arsitektur class diagram sangat rapi dan memenuhi prinsip SRP.',
+            'submitted_at' => now()->subDays(26),
+            'graded_at' => now()->subDays(24),
+            'graded_by' => $lecturers['budi']->id,
+        ]);
 
-        $task3 = Assignment::firstOrCreate(
-            ['class_id' => $classes['IF2102']->id, 'title' => 'Tugas Algoritma Greedy & Dynamic Programming'],
-            [
-                'description' => 'Pecahkan persoalan Knapsack Problem dan Coin Change.',
-                'due_at' => now()->addDays(4)->setTime(23, 59),
-                'max_score' => 100.00,
-            ]
-        );
-        Submission::updateOrCreate(
-            ['assignment_id' => $task3->id, 'user_id' => $studentArya->id],
-            [
-                'status' => 'draft',
-                'content' => 'Draft solusi algoritma greedy...',
-            ]
-        );
+        $c2 = Assignment::create([
+            'class_id' => $classPbo->id,
+            'title' => 'Tugas Praktikum 1: Class, Object & Polymorphism',
+            'description' => 'Implementasi dasar kelas, objek, encapsulation, dan method overriding.',
+            'due_at' => now()->subDays(18),
+            'max_score' => 100.00,
+        ]);
+        Submission::create([
+            'assignment_id' => $c2->id,
+            'user_id' => $studentArya->id,
+            'status' => 'graded',
+            'score' => 90.00,
+            'feedback' => 'Implementasi polimorfisme berjalan sangat baik pada test case transaksi.',
+            'submitted_at' => now()->subDays(19),
+            'graded_at' => now()->subDays(17),
+            'graded_by' => $lecturers['budi']->id,
+        ]);
 
-        $task4 = Assignment::firstOrCreate(
-            ['class_id' => $classes['IF2103']->id, 'title' => 'Tugas Query Optimization & Indexing B-Tree'],
-            [
-                'description' => 'Optimasi query laporan penjualan toko daring dengan EXPLAIN ANALYZE.',
-                'due_at' => now()->subDays(2)->setTime(23, 59),
-                'max_score' => 100.00,
-            ]
-        );
-        Submission::updateOrCreate(
-            ['assignment_id' => $task4->id, 'user_id' => $studentArya->id],
-            [
-                'status' => 'submitted',
-                'content' => 'Hasil optimasi query indeks B-Tree dilampirkan.',
-                'submitted_at' => now()->subDays(3),
-            ]
-        );
+        $c3 = Assignment::create([
+            'class_id' => $classes['IF2102']->id,
+            'title' => 'Tugas 1: Entity Relationship Diagram & Relational Mapping',
+            'description' => 'Desain skema konseptual basis data transaksi perbankan dengan relasi 3NF.',
+            'due_at' => now()->subDays(15),
+            'max_score' => 100.00,
+        ]);
+        Submission::create([
+            'assignment_id' => $c3->id,
+            'user_id' => $studentArya->id,
+            'status' => 'graded',
+            'score' => 92.00,
+            'feedback' => 'Pemetaan ERD ke skema relasional akurat dan bebas anomali update.',
+            'submitted_at' => now()->subDays(16),
+            'graded_at' => now()->subDays(14),
+            'graded_by' => $lecturers['siti']->id,
+        ]);
 
-        // Ujian UTS & Kuis
-        $quiz1 = Quiz::firstOrCreate(
-            ['class_id' => $classes['IF2104']->id, 'title' => 'Ujian Tengah Semester (UTS): Rekayasa PL'],
-            [
-                'description' => 'Ujian tertulis materi kebutuhan perangkat lunak dan arsitektur.',
-                'duration_minutes' => 120,
-            ]
-        );
+        $c4 = Assignment::create([
+            'class_id' => $classes['IF2103']->id,
+            'title' => 'Tugas Analisis Requirement Mini Core Banking',
+            'description' => 'Identifikasi functional & non-functional requirements serta SRS mini core banking.',
+            'due_at' => now()->subDays(10),
+            'max_score' => 100.00,
+        ]);
+        Submission::create([
+            'assignment_id' => $c4->id,
+            'user_id' => $studentArya->id,
+            'status' => 'submitted',
+            'content' => 'Dokumen SRS versi 1.2 dan diagram use case telah selesai disusun.',
+            'submitted_at' => now()->subDays(11),
+        ]);
 
-        $quiz2 = Quiz::firstOrCreate(
-            ['class_id' => $classes['IF2105']->id, 'title' => 'Kuis Konfigurasi Subnetting & Routing OSPF'],
-            [
-                'description' => 'Kuis pemahaman subnet IPv4 CIDR dan routing table.',
-                'duration_minutes' => 45,
-            ]
-        );
+        $c5 = Assignment::create([
+            'class_id' => $classes['IF2104']->id,
+            'title' => 'Tugas Analisis Topologi Jaringan Kampus',
+            'description' => 'Simulasikan subnetting VLSM dan konfigurasi trunking VLAN pada Cisco Packet Tracer.',
+            'due_at' => now()->subDays(5),
+            'max_score' => 100.00,
+        ]);
+        Submission::create([
+            'assignment_id' => $c5->id,
+            'user_id' => $studentArya->id,
+            'status' => 'submitted',
+            'content' => 'File .pkt simulasi topologi jaringan gedung perkuliahan telah diunggah.',
+            'submitted_at' => now()->subDays(6),
+        ]);
+
+        // ------------------------------------------
+        // B. 1 TUGAS TERLAMBAT (Overdue & Penalty)
+        // ------------------------------------------
+        Assignment::create([
+            'class_id' => $classPbo->id,
+            'title' => 'Tugas Praktikum 0 - Environment Setup & Git Workflow',
+            'description' => 'Setup environment JDK, Docker, dan konfigurasi branching strategy Git.',
+            'due_at' => now()->subDays(3)->setTime(23, 59),
+            'max_score' => 100.00,
+        ]);
+
+        // ------------------------------------------
+        // C. 8 TUGAS AKTIF (Matching UI Cards & Upcoming Deadlines)
+        // ------------------------------------------
+        // Card 1: IF2101 - Tugas 1 - Latihan Class dan Object
+        $taskCard1 = Assignment::create([
+            'class_id' => $classPbo->id,
+            'title' => 'Tugas 1 - Latihan Class dan Object',
+            'description' => 'Latihan implementasi kelas, instansiasi objek, enkapsulasi data, dan struktur method.',
+            'due_at' => now()->addDays(1)->setTime(23, 59),
+            'max_score' => 100.00,
+        ]);
+
+        // Card 2: IF2102 - Tugas 2 - Normalisasi Database
+        $taskCard2 = Assignment::create([
+            'class_id' => $classes['IF2102']->id,
+            'title' => 'Tugas 2 - Normalisasi Database',
+            'description' => 'Lakukan dekomposisi tabel tidak terstruktur hingga memenuhi Boyce-Codd Normal Form (BCNF).',
+            'due_at' => now()->addDays(2)->setTime(23, 59),
+            'max_score' => 100.00,
+        ]);
+
+        // Card 4: IF2104 - Tugas 1 - Konfigurasi IP Address
+        $taskCard4 = Assignment::create([
+            'class_id' => $classes['IF2104']->id,
+            'title' => 'Tugas 1 - Konfigurasi IP Address',
+            'description' => 'Konfigurasi IP Static dan Dynamic DHCP pada router gateway jaringan lokal.',
+            'due_at' => now()->addDays(4)->setTime(23, 59),
+            'max_score' => 100.00,
+        ]);
+
+        // Card 5: IF2105 - Tugas 3 - Analisis Performa CPU
+        $taskCard5 = Assignment::create([
+            'class_id' => $classes['IF2105']->id,
+            'title' => 'Tugas 3 - Analisis Performa CPU',
+            'description' => 'Hitung CPI (Cycles Per Instruction) dan MIPS menggunakan simulasi pipelining superscalar.',
+            'due_at' => now()->addDays(6)->setTime(23, 59),
+            'max_score' => 100.00,
+        ]);
+
+        // Extra active tasks (totaling 8 active tasks)
+        $taskPboRefactor = Assignment::create([
+            'class_id' => $classPbo->id,
+            'title' => 'Tugas 2 - Refactoring Monolithic Checkout ke SOLID Architecture',
+            'description' => 'Refactoring monolithic checkout service ke pendekatan decoupled SOLID.',
+            'due_at' => now()->addDays(8)->setTime(23, 59),
+            'max_score' => 100.00,
+        ]);
+
+        $taskGreedy = Assignment::create([
+            'class_id' => $classes['IF2102']->id,
+            'title' => 'Tugas Algoritma Greedy & Dynamic Programming',
+            'description' => 'Pecahkan persoalan Fractional Knapsack dan 0/1 Knapsack dengan membandingkan kompleksitas waktu.',
+            'due_at' => now()->addDays(10)->setTime(23, 59),
+            'max_score' => 100.00,
+        ]);
+
+        $taskQuery = Assignment::create([
+            'class_id' => $classes['IF2103']->id,
+            'title' => 'Tugas Query Optimization & Indexing B-Tree',
+            'description' => 'Optimasi query reporting penjualan toko daring menggunakan Composite Index dan EXPLAIN ANALYZE.',
+            'due_at' => now()->addDays(12)->setTime(23, 59),
+            'max_score' => 100.00,
+        ]);
+
+        $taskAlu = Assignment::create([
+            'class_id' => $classes['IF2105']->id,
+            'title' => 'Tugas Perancangan Modul ALU 8-Bit',
+            'description' => 'Rancang Arithmetic Logic Unit 8-bit dengan operasi ADD, SUB, AND, OR, dan Shift Register pada Logisim.',
+            'due_at' => now()->addDays(15)->setTime(23, 59),
+            'max_score' => 100.00,
+        ]);
+
+        // ------------------------------------------
+        // D. 3 UJIAN MENDATANG (Quizzes / Exams)
+        // ------------------------------------------
+        // Card 3: IF2103 - Ujian Tengah Semester (UTS)
+        $quizUts = Quiz::create([
+            'class_id' => $classes['IF2103']->id,
+            'title' => 'Ujian Tengah Semester (UTS)',
+            'description' => 'Ujian CBT resmi tertulis mata kuliah Rancang Bangun Mini Core Banking System (OOP).',
+            'duration_minutes' => 120,
+            'pass_score' => 70.00,
+        ]);
+
+        // Seed 4 realistic questions for UTS
+        Question::create([
+            'quiz_id' => $quizUts->id,
+            'type' => 'multiple_choice',
+            'prompt' => 'Manakah di bawah ini yang merupakan representasi dari prinsip Single Responsibility Principle (SRP) dalam SOLID?',
+            'options' => [
+                ['key' => 'A', 'text' => 'Sebuah kelas hanya boleh memiliki satu alasan untuk berubah (satu tanggung jawab spesifik).'],
+                ['key' => 'B', 'text' => 'Kelas induk harus dapat digantikan oleh kelas turunannya tanpa mengubah perilaku program.'],
+                ['key' => 'C', 'text' => 'Modul tingkat tinggi tidak boleh bergantung langsung pada modul tingkat rendah.'],
+                ['key' => 'D', 'text' => 'Entitas perangkat lunak harus terbuka untuk ekstensi namun tertutup untuk modifikasi.'],
+            ],
+            'correct_answer' => ['A'],
+            'points' => 25.00,
+            'bloom_level' => 'C4',
+        ]);
+
+        Question::create([
+            'quiz_id' => $quizUts->id,
+            'type' => 'multiple_choice',
+            'prompt' => 'Pola desain Gang of Four (GoF) yang bertujuan memisahkan konstruksi objek kompleks dari representasinya adalah:',
+            'options' => [
+                ['key' => 'A', 'text' => 'Singleton Pattern'],
+                ['key' => 'B', 'text' => 'Builder Pattern'],
+                ['key' => 'C', 'text' => 'Observer Pattern'],
+                ['key' => 'D', 'text' => 'Strategy Pattern'],
+            ],
+            'correct_answer' => ['B'],
+            'points' => 25.00,
+            'bloom_level' => 'C3',
+        ]);
+
+        Question::create([
+            'quiz_id' => $quizUts->id,
+            'type' => 'multiple_choice',
+            'prompt' => 'Dalam arsitektur perbankan modern, apa keuntungan utama prinsip Composition over Inheritance?',
+            'options' => [
+                ['key' => 'A', 'text' => 'Mengurangi pemakaian memori heap JVM secara signifikan.'],
+                ['key' => 'B', 'text' => 'Menghindari tight-coupling antarkelas dan memudahkan penggantian implementasi modul saat runtime.'],
+                ['key' => 'C', 'text' => 'Mencegah eksekusi method overriding pada level compiler.'],
+                ['key' => 'D', 'text' => 'Mengizinkan akses langsung atribut privat kelas induk.'],
+            ],
+            'correct_answer' => ['B'],
+            'points' => 25.00,
+            'bloom_level' => 'C4',
+        ]);
+
+        Question::create([
+            'quiz_id' => $quizUts->id,
+            'type' => 'multiple_choice',
+            'prompt' => 'Bagaimana penerapan Open/Closed Principle (OCP) pada arsitektur payment gateway perbankan?',
+            'options' => [
+                ['key' => 'A', 'text' => 'Mengubah file source code kelas utama setiap kali ada penambahan metode pembayaran baru.'],
+                ['key' => 'B', 'text' => 'Menambahkan method baru bertipe switch-case pada class controller inti.'],
+                ['key' => 'C', 'text' => 'Membuat interface PaymentProvider dan mengimplementasikan provider baru tanpa mengubah kode inti.'],
+                ['key' => 'D', 'text' => 'Menggunakan database trigger untuk memetakan endpoint payment baru.'],
+            ],
+            'correct_answer' => ['C'],
+            'points' => 25.00,
+            'bloom_level' => 'C4',
+        ]);
+
+        // Card 6: IF2102 - Ujian Akhir Semester (UAS)
+        $quizUas = Quiz::create([
+            'class_id' => $classes['IF2102']->id,
+            'title' => 'Ujian Akhir Semester (UAS)',
+            'description' => 'Ujian Akhir Semester mata kuliah Basis Data & Sistem Terdistribusi. Ruang Ujian Gedung C Lt. 2 / CBT Online.',
+            'duration_minutes' => 120,
+            'pass_score' => 70.00,
+        ]);
+
+        Question::create([
+            'quiz_id' => $quizUas->id,
+            'type' => 'multiple_choice',
+            'prompt' => 'Dalam teorema CAP sistem terdistribusi, properti manakah yang dikorbankan pada arsitektur Cassandra yang mengutamakan AP (Availability & Partition Tolerance)?',
+            'options' => [
+                ['key' => 'A', 'text' => 'Strict Consistency (Konsistensi Kuat)'],
+                ['key' => 'B', 'text' => 'High Availability'],
+                ['key' => 'C', 'text' => 'Fault Tolerance'],
+                ['key' => 'D', 'text' => 'Network Partitioning'],
+            ],
+            'correct_answer' => ['A'],
+            'points' => 50.00,
+            'bloom_level' => 'C4',
+        ]);
+
+        Question::create([
+            'quiz_id' => $quizUas->id,
+            'type' => 'multiple_choice',
+            'prompt' => 'Tingkat isolasi transaksi ACID database manakah yang mencegah Dirty Read, Non-Repeatable Read, dan Phantom Read secara total?',
+            'options' => [
+                ['key' => 'A', 'text' => 'Read Uncommitted'],
+                ['key' => 'B', 'text' => 'Read Committed'],
+                ['key' => 'C', 'text' => 'Repeatable Read'],
+                ['key' => 'D', 'text' => 'Serializable'],
+            ],
+            'correct_answer' => ['D'],
+            'points' => 50.00,
+            'bloom_level' => 'C3',
+        ]);
+
+        // Exam 3: IF2104 - Kuis Konfigurasi Subnetting & Routing OSPF
+        $quizNetwork = Quiz::create([
+            'class_id' => $classes['IF2104']->id,
+            'title' => 'Kuis Konfigurasi Subnetting & Routing OSPF',
+            'description' => 'Kuis pemahaman subnet IPv4 CIDR dan tabel routing OSPF.',
+            'duration_minutes' => 45,
+            'pass_score' => 70.00,
+        ]);
 
         // ==========================================
         // 10. FORUM DISKUSI (7 THREAD KANONIK)

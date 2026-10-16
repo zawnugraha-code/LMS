@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AcademicActionController;
 use App\Http\Controllers\AiCopilotController;
+use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DemoAuthController;
@@ -48,7 +49,12 @@ Route::get('/app', [DashboardController::class, 'index'])->name('app.dashboard')
 Route::get('/app/courses', [CourseController::class, 'index'])->name('app.courses');
 Route::get('/app/courses/{class}', [CourseController::class, 'show'])->name('app.courses.show');
 Route::get('/app/courses/{class}/classroom', [CourseController::class, 'classroom'])->name('app.courses.classroom');
-Route::get('/app/assignments', [DashboardController::class, 'assignments'])->name('app.assignments');
+Route::get('/app/assignments', [AssignmentController::class, 'index'])->name('app.assignments');
+Route::get('/app/assignments/calendar.ics', [AssignmentController::class, 'exportCalendar'])->name('assignments.calendar.ics');
+Route::get('/app/assignments/{assignment}/submit', [AssignmentController::class, 'submitForm'])->name('assignments.submit_form');
+Route::get('/app/assignments/{assignment}/download', [AssignmentController::class, 'downloadAttachment'])->name('assignments.download');
+Route::get('/app/quizzes/{quiz}/attempt', [AssignmentController::class, 'attemptQuiz'])->name('quizzes.attempt');
+Route::post('/app/quizzes/{quiz}/attempt', [AssignmentController::class, 'submitQuiz'])->name('quizzes.submit_attempt');
 Route::get('/app/attendance', [DashboardController::class, 'attendance'])->name('app.attendance');
 Route::get('/app/grades', [DashboardController::class, 'grades'])->name('app.grades');
 Route::get('/app/materials', [MaterialController::class, 'index'])->name('app.materials');
