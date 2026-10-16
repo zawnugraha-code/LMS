@@ -564,7 +564,7 @@
                             <!-- Button Action -->
                             <button 
                                 type="button" 
-                                @click="aiDrawerOpen = true; aiPrompt = 'Tolong berikan ringkasan materi untuk mata kuliah {{ $selectedClass?->course?->name ?? 'Pemrograman Berorientasi Objek' }} dan panduan pembelajarannya.'"
+                                @click="aiContext = '{{ addslashes($selectedClass?->course?->name ?? 'Pemrograman Berorientasi Objek') }}'; sendAiMessage('Tolong berikan ringkasan materi untuk mata kuliah {{ addslashes($selectedClass?->course?->name ?? 'Pemrograman Berorientasi Objek') }} dan panduan pembelajarannya.', 'summarize')"
                                 class="mt-3.5 px-4 py-2 rounded-[6px] bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                             >
                                 <span>Coba Sekarang</span>

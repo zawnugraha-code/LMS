@@ -250,7 +250,7 @@
                 </p>
                 <button 
                     type="button" 
-                    @click="aiDrawerOpen = true; aiPrompt = 'Tolong jelaskan secara mendalam tentang materi {{ $material->title }} pada mata kuliah {{ $course?->name }} beserta contoh implementasinya.'"
+                    @click="aiContext = '{{ addslashes($course?->name ?? 'Pemrograman Berorientasi Objek') }} — {{ addslashes($material->title) }}'; sendAiMessage('Tolong jelaskan secara mendalam tentang materi {{ addslashes($material->title) }} pada mata kuliah {{ addslashes($course?->name ?? 'PBO') }} beserta contoh implementasinya.')"
                     class="w-full px-3.5 py-2 rounded-[6px] bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
                 >
                     <span>Tanya AI Copilot</span>

@@ -18,15 +18,105 @@
     </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
 </head>
 <body 
     class="h-full bg-canvas text-text font-sans antialiased selection:bg-accent selection:text-white" 
     x-data="{ 
         aiDrawerOpen: false, 
         aiPrompt: '', 
+        aiContext: 'Pemrograman Berorientasi Objek & Desain Pola',
+        aiMode: 'chat',
         aiResponse: '', 
         aiLoading: false, 
         socraticMode: true, 
+        aiMessages: [
+            {
+                role: 'ai',
+                text: 'Halo Arya! Saya Arunika AI Copilot, asisten belajar cerdas Anda. Ada konsep materi kuliah, tugas, atau capaian CPL yang ingin Anda diskusikan?',
+                time: 'Baru saja'
+            }
+        ],
+        aiSuggestions: [
+            'Jelaskan Prinsip Single Responsibility (SRP)',
+            'Apa perbedaan Abstraksi dan Interface?',
+            'Buatkan 3 kartu flashcard materi ini',
+            'Rangkum capaian CPL-02 mata kuliah ini'
+        ],
+        sendAiMessage(promptText, mode = null) {
+            const text = promptText || this.aiPrompt;
+            if (!text || !text.trim() || this.aiLoading) return;
+            
+            const activeMode = mode || this.aiMode || 'chat';
+            
+            this.aiMessages.push({
+                role: 'user',
+                text: text,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+            
+            this.aiPrompt = '';
+            this.aiLoading = true;
+            this.aiDrawerOpen = true;
+            
+            this.$nextTick(() => {
+                const el = document.getElementById('aiChatContainer');
+                if (el) el.scrollTop = el.scrollHeight;
+            });
+
+            fetch('{{ route('copilot.ask') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    prompt: text,
+                    socratic: this.socraticMode,
+                    context: this.aiContext,
+                    mode: activeMode
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.aiLoading = false;
+                this.aiResponse = data.response;
+                this.aiMessages.push({
+                    role: 'ai',
+                    text: data.response,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    provider: data.provider,
+                    xp: data.xp_awarded
+                });
+                if (data.suggested_prompts && data.suggested_prompts.length) {
+                    this.aiSuggestions = data.suggested_prompts;
+                }
+                this.$nextTick(() => {
+                    const el = document.getElementById('aiChatContainer');
+                    if (el) el.scrollTop = el.scrollHeight;
+                });
+            })
+            .catch(() => {
+                this.aiLoading = false;
+                this.aiMessages.push({
+                    role: 'ai',
+                    text: 'Mohon maaf, terjadi kendala jaringan saat menghubungi Arunika AI Copilot.',
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                });
+            });
+        },
+        clearAiChat() {
+            this.aiMessages = [
+                {
+                    role: 'ai',
+                    text: 'Percakapan telah dibersihkan. Apa konsep materi yang ingin Anda telaah selanjutnya?',
+                    time: 'Baru saja'
+                }
+            ];
+        },
         mobileSidebar: false,
         searchModalOpen: false,
         searchQuery: '',
@@ -241,6 +331,17 @@
                         >
                         <x-icon name="search" :size="14" class="text-text-subtle absolute left-2.5 top-2" />
                     </div>
+
+                    <!-- AI Copilot Trigger Button (Topbar) -->
+                    <button 
+                        type="button" 
+                        @click="aiDrawerOpen = true"
+                        class="relative cursor-pointer px-2.5 py-1 rounded-[6px] hover:bg-blue-50 text-[#2563EB] hover:text-blue-700 transition-colors flex items-center gap-1.5 shadow-2xs border border-blue-100 bg-blue-50/50 text-xs font-semibold"
+                        title="Buka Arunika AI Copilot"
+                    >
+                        <x-icon name="bot" :size="15" class="text-[#2563EB]" />
+                        <span class="hidden sm:inline text-[11px] font-semibold text-[#2563EB]">AI Copilot</span>
+                    </button>
 
                     <!-- Notifikasi Lonceng dengan Dropdown Real-time (Persis Gambar Acuan) -->
                     <div class="relative">
@@ -706,36 +807,249 @@
         </div>
     </div>
 
-    <!-- Script AI Copilot -->
+    <!-- ==========================================
+         SLIDE-OVER DRAWER: ARUNIKA AI COPILOT
+         ========================================== -->
+    <div 
+        x-show="aiDrawerOpen" 
+        x-cloak
+        class="fixed inset-0 z-50 overflow-hidden" 
+        role="dialog" 
+        aria-modal="true"
+        @keydown.escape.window="aiDrawerOpen = false"
+    >
+        <!-- Backdrop -->
+        <div 
+            x-show="aiDrawerOpen"
+            x-transition:enter="ease-in-out duration-300"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="ease-in-out duration-300"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="fixed inset-0 bg-navy-950/40 backdrop-blur-xs transition-opacity" 
+            @click="aiDrawerOpen = false"
+        ></div>
+
+        <!-- Slide-over Container -->
+        <div class="fixed inset-y-0 right-0 max-w-full flex pl-10 pointer-events-none">
+            <div 
+                x-show="aiDrawerOpen"
+                x-transition:enter="transform transition ease-in-out duration-300"
+                x-transition:enter-start="translate-x-full"
+                x-transition:enter-end="translate-x-0"
+                x-transition:leave="transform transition ease-in-out duration-300"
+                x-transition:leave-start="translate-x-0"
+                x-transition:leave-end="translate-x-full"
+                class="w-screen max-w-md bg-surface border-l border-line shadow-2xl flex flex-col justify-between pointer-events-auto"
+            >
+                <!-- Drawer Header -->
+                <div class="p-4 border-b border-line bg-gradient-to-r from-[#EFF6FF] via-[#F5F3FF] to-[#FAF5FF] flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-[#1A2E5E] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                            <x-icon name="bot" :size="18" />
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-sm text-navy-950">Arunika AI Copilot</h3>
+                                <span class="flex h-2 w-2 relative">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-text-muted mt-0.5">Asisten &amp; Pendamping Belajar Cerdas</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-1.5">
+                        <a 
+                            href="{{ route('app.copilot') }}" 
+                            class="p-1.5 rounded-[6px] text-text-muted hover:text-[#2563EB] hover:bg-white/60 transition-colors"
+                            title="Buka Workspace Lengkap"
+                        >
+                            <x-icon name="maximize-2" :size="15" />
+                        </a>
+                        <button 
+                            type="button" 
+                            @click="aiDrawerOpen = false" 
+                            class="p-1.5 rounded-[6px] text-text-muted hover:text-text hover:bg-white/60 transition-colors cursor-pointer"
+                        >
+                            <x-icon name="x" :size="16" />
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sub-bar: Socratic Mode Toggle & Active Learning Context -->
+                <div class="px-4 py-2 border-b border-line bg-canvas/40 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="text-[11px] text-text-muted shrink-0">Konteks:</span>
+                        <span class="text-[11px] font-semibold text-text truncate max-w-[170px]" x-text="aiContext || 'Pemrograman Berorientasi Objek'"></span>
+                    </div>
+
+                    <!-- Socratic Mode Toggle -->
+                    <div class="flex items-center gap-1.5 shrink-0" title="Metode Sokrates: membimbing dengan pertanyaan pemantik tanpa membocorkan jawaban langsung">
+                        <span class="text-[11px] font-medium" :class="socraticMode ? 'text-[#2563EB] font-semibold' : 'text-text-muted'">Sokrates</span>
+                        <button 
+                            type="button" 
+                            @click="socraticMode = !socraticMode" 
+                            :class="socraticMode ? 'bg-[#2563EB]' : 'bg-slate-300'"
+                            class="relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full transition-colors duration-200 ease-in-out focus:outline-none"
+                        >
+                            <span 
+                                :class="socraticMode ? 'translate-x-3.5' : 'translate-x-0.5'"
+                                class="inline-block h-3 w-3 transform rounded-full bg-white transition duration-200 ease-in-out mt-0.5 shadow-xs"
+                            ></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Messages Stream (Scrollable) -->
+                <div id="aiChatContainer" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs bg-canvas/20">
+                    <template x-for="(msg, index) in aiMessages" :key="index">
+                        <div>
+                            <!-- User Message -->
+                            <template x-if="msg.role === 'user'">
+                                <div class="flex justify-end mb-2">
+                                    <div class="max-w-[85%] rounded-[10px] rounded-tr-xs bg-[#1A2E5E] text-white p-3 shadow-2xs">
+                                        <p class="leading-relaxed whitespace-pre-wrap text-xs" x-text="msg.text"></p>
+                                        <span class="text-[9px] text-white/60 block text-right mt-1" x-text="msg.time"></span>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- AI Message -->
+                            <template x-if="msg.role === 'ai'">
+                                <div class="flex items-start gap-2.5 mb-2">
+                                    <div class="w-7 h-7 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                                        <x-icon name="bot" :size="14" />
+                                    </div>
+                                    <div class="max-w-[85%] rounded-[10px] rounded-tl-xs bg-surface border border-line text-text p-3 shadow-2xs">
+                                        <div class="prose prose-xs leading-relaxed whitespace-pre-wrap font-sans text-xs text-text" x-text="msg.text"></div>
+                                        <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-line/50 text-[9px] text-text-muted">
+                                            <span x-show="msg.xp" class="text-amber-600 font-bold flex items-center gap-1">
+                                                <span>+10 XP</span>
+                                            </span>
+                                            <span x-text="msg.time"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <!-- Loading Indicator Bubble -->
+                    <div x-show="aiLoading" class="flex items-start gap-2.5 mb-2">
+                        <div class="w-7 h-7 rounded-full bg-blue-100 text-[#2563EB] flex items-center justify-center shrink-0 mt-0.5">
+                            <x-icon name="bot" :size="14" />
+                        </div>
+                        <div class="rounded-[10px] rounded-tl-xs bg-surface border border-line text-text p-3 shadow-2xs flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#2563EB] animate-bounce"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#2563EB] animate-bounce [animation-delay:0.2s]"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#2563EB] animate-bounce [animation-delay:0.4s]"></span>
+                            <span class="text-[11px] text-text-muted ml-1.5">Arunika Copilot sedang menelaah materi...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Prompts Chips -->
+                <div class="px-4 py-2 border-t border-line/60 bg-surface">
+                    <span class="text-[10px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">Topik Cepat Diskusikan</span>
+                    <div class="flex flex-wrap gap-1.5">
+                        <template x-for="chip in aiSuggestions" :key="chip">
+                            <button 
+                                type="button" 
+                                @click="sendAiMessage(chip)" 
+                                class="px-2 py-1 rounded-[5px] bg-canvas hover:bg-blue-50 text-[11px] text-text hover:text-[#2563EB] border border-line hover:border-blue-200 transition-colors cursor-pointer text-left truncate max-w-[200px]"
+                                :title="chip"
+                            >
+                                <span x-text="chip"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Input Footer Area -->
+                <div class="p-3.5 border-t border-line bg-surface space-y-2">
+                    <!-- Learning Mode Pill Switches -->
+                    <div class="flex items-center justify-between text-[11px]">
+                        <div class="flex items-center gap-1">
+                            <button 
+                                type="button" 
+                                @click="aiMode = 'chat'" 
+                                :class="aiMode === 'chat' ? 'bg-blue-100 text-[#2563EB] font-bold' : 'text-text-muted hover:text-text'" 
+                                class="px-2 py-0.5 rounded-[4px] transition-colors cursor-pointer"
+                            >
+                                Tanya Konsep
+                            </button>
+                            <button 
+                                type="button" 
+                                @click="aiMode = 'flashcard'" 
+                                :class="aiMode === 'flashcard' ? 'bg-blue-100 text-[#2563EB] font-bold' : 'text-text-muted hover:text-text'" 
+                                class="px-2 py-0.5 rounded-[4px] transition-colors cursor-pointer"
+                            >
+                                Flashcard
+                            </button>
+                            <button 
+                                type="button" 
+                                @click="aiMode = 'summarize'" 
+                                :class="aiMode === 'summarize' ? 'bg-blue-100 text-[#2563EB] font-bold' : 'text-text-muted hover:text-text'" 
+                                class="px-2 py-0.5 rounded-[4px] transition-colors cursor-pointer"
+                            >
+                                Rangkum
+                            </button>
+                            <button 
+                                type="button" 
+                                @click="aiMode = 'quiz'" 
+                                :class="aiMode === 'quiz' ? 'bg-blue-100 text-[#2563EB] font-bold' : 'text-text-muted hover:text-text'" 
+                                class="px-2 py-0.5 rounded-[4px] transition-colors cursor-pointer"
+                            >
+                                Latihan Kuis
+                            </button>
+                        </div>
+
+                        <button 
+                            type="button" 
+                            @click="clearAiChat()" 
+                            class="text-text-muted hover:text-red-500 transition-colors cursor-pointer p-1"
+                            title="Bersihkan Percakapan"
+                        >
+                            <x-icon name="trash-2" :size="12" />
+                        </button>
+                    </div>
+
+                    <!-- Input Bar -->
+                    <form @submit.prevent="sendAiMessage(aiPrompt)" class="flex items-center gap-2">
+                        <input 
+                            type="text" 
+                            x-model="aiPrompt" 
+                            :disabled="aiLoading"
+                            placeholder="Tanyakan materi atau konsep yang ingin dipelajari..." 
+                            class="flex-1 px-3 py-2 rounded-[6px] border border-line bg-canvas text-xs text-text placeholder:text-text-muted focus:outline-none focus:border-[#2563EB] focus:bg-surface transition-colors"
+                        >
+                        <button 
+                            type="submit" 
+                            :disabled="aiLoading || !aiPrompt.trim()"
+                            :class="(aiLoading || !aiPrompt.trim()) ? 'opacity-50 cursor-not-allowed bg-slate-300' : 'bg-[#2563EB] hover:bg-blue-700 cursor-pointer'"
+                            class="w-8 h-8 rounded-[6px] text-white flex items-center justify-center shrink-0 shadow-2xs transition-colors"
+                        >
+                            <x-icon name="send" :size="14" />
+                        </button>
+                    </form>
+                    <p class="text-[10px] text-text-muted text-center">
+                        Arunika AI membantu Anda bernalar &bull; Tekan <kbd class="font-mono bg-canvas border border-line px-1 rounded">Enter</kbd> untuk mengirim
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script AI Copilot Backward-Compatibility -->
     <script>
         function askAi() {
-            const prompt = Alpine.$data(document.body).aiPrompt;
-            if (!prompt) return;
-
-            Alpine.$data(document.body).aiLoading = true;
-            Alpine.$data(document.body).aiResponse = '';
-
-            fetch('/api/copilot/ask', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    prompt: prompt,
-                    socratic: Alpine.$data(document.body).socraticMode,
-                    context: 'Pemrograman Berorientasi Objek & Desain Pola (IF2104)'
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                Alpine.$data(document.body).aiLoading = false;
-                Alpine.$data(document.body).aiResponse = data.response;
-            })
-            .catch(err => {
-                Alpine.$data(document.body).aiLoading = false;
-                Alpine.$data(document.body).aiResponse = 'Mohon maaf, terjadi kendala jaringan saat menghubungi Pendamping Belajar.';
-            });
+            const bodyData = Alpine.$data(document.body);
+            if (bodyData && typeof bodyData.sendAiMessage === 'function') {
+                bodyData.sendAiMessage(bodyData.aiPrompt);
+            }
         }
     </script>
 </body>

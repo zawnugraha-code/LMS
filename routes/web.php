@@ -106,5 +106,7 @@ Route::prefix('/app')->group(function () {
     Route::post('/meetings/{meeting}/attendance', [AcademicActionController::class, 'checkInAttendance'])->name('meetings.attendance');
 });
 
-// 8. AI Copilot Endpoint
+// 8. AI Copilot Endpoints & Learning Workspace
+Route::get('/app/copilot', [AiCopilotController::class, 'index'])->name('app.copilot');
+Route::get('/api/copilot/suggestions', [AiCopilotController::class, 'suggestions'])->name('copilot.suggestions');
 Route::post('/api/copilot/ask', [AiCopilotController::class, 'ask'])->name('copilot.ask');
