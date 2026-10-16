@@ -1078,8 +1078,9 @@ class CanonicalStudentSeeder extends Seeder
             ],
         ];
 
-        foreach ($threadsData as $td) {
+        foreach ($threadsData as $index => $td) {
             $createdTime = isset($td['days_ago']) ? now()->subDays($td['days_ago']) : now()->subHours($td['hours_ago']);
+            $threadUpvotes = [18, 24, 15, 9, 8, 31, 27][$index] ?? 10;
             $thread = DiscussionThread::create([
                 'user_id' => $td['user']->id,
                 'category_id' => $td['category']->id,
@@ -1088,18 +1089,79 @@ class CanonicalStudentSeeder extends Seeder
                 'content' => $td['content'],
                 'is_pinned' => $td['is_pinned'],
                 'views_count' => $td['views'],
+                'upvotes_count' => $threadUpvotes,
                 'created_at' => $createdTime,
                 'updated_at' => $createdTime,
             ]);
 
-            // Seeding mock replies
-            for ($r = 1; $r <= min(3, $td['comments_count']); $r++) {
+            // Seeding rich canonical replies
+            if ($index === 0) {
                 DiscussionReply::create([
                     'thread_id' => $thread->id,
-                    'user_id' => $peers[($r - 1) % count($peers)]->id,
-                    'content' => 'Terima kasih atas diskusinya! Sangat bermanfaat.',
-                    'created_at' => $createdTime->copy()->addMinutes($r * 15),
+                    'user_id' => $peers[0]->id, // Andi
+                    'content' => 'Terima kasih atas pengumumannya, Pak Budi. Untuk format laporan apakah mengikuti template IEEE?',
+                    'upvotes_count' => 6,
+                    'created_at' => $createdTime->copy()->addMinutes(25),
                 ]);
+                DiscussionReply::create([
+                    'thread_id' => $thread->id,
+                    'user_id' => $lecturers['budi']->id,
+                    'content' => 'Ya, gunakan template IEEE dua kolom standar. Lampiran kode diunggah dalam format ZIP atau tautan GitHub.',
+                    'is_solution' => true,
+                    'upvotes_count' => 19,
+                    'created_at' => $createdTime->copy()->addMinutes(45),
+                ]);
+                DiscussionReply::create([
+                    'thread_id' => $thread->id,
+                    'user_id' => $peers[1]->id, // Siti
+                    'content' => 'Jadwal presentasi apakah per kelompok atau individu, Pak?',
+                    'upvotes_count' => 4,
+                    'created_at' => $createdTime->copy()->addHours(2),
+                ]);
+            } elseif ($index === 1) {
+                DiscussionReply::create([
+                    'thread_id' => $thread->id,
+                    'user_id' => $lecturers['budi']->id,
+                    'content' => 'Penjelasan singkat: Interface Segregation Principle (ISP) menganjurkan klien hanya bergantung pada interface yang mereka gunakan. Pisahkan interface besar (fat interface) menjadi role-based interfaces (misal: OrderReadInterface dan OrderWriteInterface).',
+                    'is_solution' => true,
+                    'upvotes_count' => 28,
+                    'created_at' => $createdTime->copy()->addMinutes(30),
+                ]);
+                DiscussionReply::create([
+                    'thread_id' => $thread->id,
+                    'user_id' => $peers[2]->id, // Raka
+                    'content' => 'Setuju dengan Pak Budi, di microservices pola ini sangat krusial saat mendesain contract protobuf / gRPC.',
+                    'upvotes_count' => 11,
+                    'created_at' => $createdTime->copy()->addHours(1),
+                ]);
+            } elseif ($index === 2) {
+                DiscussionReply::create([
+                    'thread_id' => $thread->id,
+                    'user_id' => $peers[5]->id, // Fajar
+                    'content' => 'Pada BST praktikum 7, perhatikan base condition rekursif pada method deleteNode saat node memiliki dua anak (ambil inorder successor).',
+                    'is_solution' => true,
+                    'upvotes_count' => 15,
+                    'created_at' => $createdTime->copy()->addMinutes(40),
+                ]);
+            } elseif ($index === 5) {
+                DiscussionReply::create([
+                    'thread_id' => $thread->id,
+                    'user_id' => $peers[5]->id, // Fajar
+                    'content' => 'Solusi jitu: Tambahkan listen_addresses = \'*\' di postgresql.conf, lalu di pg_hba.conf tambahkan baris host all all 0.0.0.0/0 md5, kemudian restart service postgres di container.',
+                    'is_solution' => true,
+                    'upvotes_count' => 22,
+                    'created_at' => $createdTime->copy()->addMinutes(50),
+                ]);
+            } else {
+                for ($r = 1; $r <= min(2, $td['comments_count']); $r++) {
+                    DiscussionReply::create([
+                        'thread_id' => $thread->id,
+                        'user_id' => $peers[($r - 1) % count($peers)]->id,
+                        'content' => 'Diskusi yang sangat bermanfaat dan relevan dengan materi perkuliahan minggu ini.',
+                        'upvotes_count' => 3 + $r,
+                        'created_at' => $createdTime->copy()->addMinutes($r * 20),
+                    ]);
+                }
             }
         }
 

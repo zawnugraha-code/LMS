@@ -163,6 +163,11 @@ class User extends Authenticatable
         return (int) $this->xpLedgers()->sum('amount');
     }
 
+    public function getTotalXpAttribute(): int
+    {
+        return $this->totalXp();
+    }
+
     public function currentLevel(): int
     {
         $xp = $this->totalXp();

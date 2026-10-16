@@ -7,6 +7,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DemoAuthController;
+use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\NotificationController;
@@ -68,7 +69,13 @@ Route::get('/app/grades/{enrollment}/pdf', [GradeController::class, 'downloadKhs
 Route::get('/app/materials', [MaterialController::class, 'index'])->name('app.materials');
 Route::get('/app/materials/{material}/view', [MaterialController::class, 'view'])->name('app.materials.view');
 Route::post('/app/materials/{material}/progress', [MaterialController::class, 'updateProgress'])->name('app.materials.progress');
-Route::get('/app/discussions', [DashboardController::class, 'discussions'])->name('app.discussions');
+Route::get('/app/discussions', [DiscussionController::class, 'index'])->name('app.discussions');
+Route::post('/app/discussions', [DiscussionController::class, 'store'])->name('app.discussions.store');
+Route::get('/app/discussions/{thread}', [DiscussionController::class, 'show'])->name('app.discussions.show');
+Route::post('/app/discussions/{thread}/replies', [DiscussionController::class, 'storeReply'])->name('app.discussions.reply');
+Route::post('/app/discussions/{thread}/upvote', [DiscussionController::class, 'upvoteThread'])->name('app.discussions.upvote');
+Route::post('/app/discussions/replies/{reply}/upvote', [DiscussionController::class, 'upvoteReply'])->name('app.discussions.reply.upvote');
+Route::post('/app/discussions/replies/{reply}/solution', [DiscussionController::class, 'markSolution'])->name('app.discussions.reply.solution');
 Route::get('/app/settings', [DashboardController::class, 'settings'])->name('app.settings');
 Route::get('/app/notifications', [NotificationController::class, 'all'])->name('app.notifications');
 

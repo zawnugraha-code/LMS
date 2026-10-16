@@ -23,12 +23,14 @@ class DiscussionThread extends Model
         'is_pinned',
         'is_locked',
         'views_count',
+        'upvotes_count',
     ];
 
     protected $casts = [
         'is_pinned' => 'boolean',
         'is_locked' => 'boolean',
         'views_count' => 'integer',
+        'upvotes_count' => 'integer',
     ];
 
     public function academicClass(): BelongsTo
