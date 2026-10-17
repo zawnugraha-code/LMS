@@ -11,7 +11,7 @@ Dokumen ini mencatat keputusan arsitektural, skema tabel, komponen UI, route, da
 | :--- | :--- | :--- | :--- |
 | **Fase 1** | Analisis Repo + Audit Mahasiswa + Perencanaan Batch 1 | **SELESAI** | Selesai pada 17 Okt 2026. Dokumen `PLAN.md` telah disahkan. |
 | **Fase 2** | Fondasi Data: Migration, Model, Policy, Seeder, Scheduler, Route Placeholder | **SELESAI** | Selesai pada 17 Okt 2026. 2 migration ran, 10 feature tests pass, 100% Pint. |
-| **Fase 3** | Layout Dosen (`layouts.dosen`) + Beranda + Kelas Saya (+ Detail Kelas) | Menunggu | Siap dikerjakan setelah persetujuan Fase 2 |
+| **Fase 3** | Layout Dosen (`layouts.dosen`) + Beranda + Kelas Saya (+ Detail Kelas) | **SELESAI** | Selesai pada 17 Okt 2026. Layout + Beranda + Kelas Saya + Detail Kelas + Policy Isolation + Tests 100% Pass. |
 | **Fase 4** | Modul Tugas & Ujian + Integrasi Tampil di Mahasiswa | Menunggu | - |
 | **Fase 5** | Modul Pengumpulan + Penilaian + Notifikasi + Badge Dinamis | Menunggu | - |
 | **Fase 6** | Modul Materi Pembelajaran + Pengumuman Kelas & Akademik | Menunggu | - |
@@ -93,4 +93,47 @@ Dokumen ini mencatat keputusan arsitektural, skema tabel, komponen UI, route, da
   - `tests/Feature/EndToEndStudentFlowTest.php`: 2 passed (40 assertions) — 0 regresi mahasiswa.
 - **Code Style**:
   - Laravel Pint: Passed (100% PSR-12).
+
+---
+
+## 6. HASIL VERIFIKASI FASE 3
+
+- **Layout Dosen (`resources/views/layouts/dosen.blade.php`)**:
+  - Sidebar 234px berlatar Navy Academic (`#1A2E5E`), logo Arunika inverse, 9 menu urut sesuai spesifikasi.
+  - Badge dinamis merah `14` pada menu Penilaian (sinkron deterministik dari `submissions` dengan `score IS NULL`).
+  - Topbar putih bersih dengan live search bar, breadcrumb bertingkat, popover notifikasi riil database (2 unread untuk Dr. Budi Rahardjo), dan menu profil dropdown.
+- **Komponen UI Dosen Reusable (`resources/views/components/dosen/`)**:
+  - `stat-card.blade.php`: Kartu metrik dengan nilai tebal, label, unit, badge opsional, dan ikon.
+  - `status-badge.blade.php`: Kapsul badge terstandardisasi (`Tepat Waktu`, `Terlambat`, `Dipublikasikan`, `Draft`, `Terjadwal`, `Aktif`, `Selesai`).
+  - `data-table.blade.php`: Wrapper tabel berbingkai halus, header abu-abu muda, dan alternating hover.
+  - `empty-state.blade.php`: Tampilan konsisten saat data kosong dengan ikon dan tombol aksi.
+- **Beranda Dosen (`pages/dosen/dashboard.blade.php`)**:
+  - Banner selamat datang dengan pill prodi (`S1 Teknik Informatika`), semester (`Semester Ganjil 2026/2027`), dan tanggal acuan (`Senin, 19 Oktober 2026`), plus ilustrasi kampus (`campus-hero.jpg`).
+  - 4 Stat Cards: `Kelas Diampu (3)`, `Total Mahasiswa (90)`, `Tugas Aktif (5)`, `Perlu Dinilai (14)` dengan badge merah 14.
+  - Jadwal Mengajar Hari Ini: 3 kelas Senin dengan badge pertemuan (`Pertemuan 5` dan `Pertemuan 4`).
+  - Pengumpulan Terbaru: 5 mahasiswa teratas (Ahmad Fauzi, Siti Nurhaliza, Rizky Pratama, Dewi Lestari, Fajar Nugroho) dengan badge status waktu (`Terlambat` & `Tepat Waktu`).
+  - Sidebar kanan: Pengumuman Terbaru kelas, Tugas dengan Deadline Terdekat (tenggat `3 hari lagi`, `5 hari lagi`, `8 hari lagi`), dan Pengumuman Akademik.
+- **Halaman Kelas Saya (`pages/dosen/kelas/index.blade.php`)**:
+  - Filter tab status (`Semua Kelas`, `Aktif (3)`, `Selesai (0)`).
+  - Pengelompokan mata kuliah: IF2101 (Kelas A: 32 mhs, progress materi 78%; Kelas B: 30 mhs, progress materi 65%) dan IF2103 (Kelas A: 28 mhs, progress materi 72%).
+  - Widget samping: Jadwal Hari Ini timeline titik warna, Ringkasan Kelas 2x2 grid (Total Kelas: 3, Total Mahasiswa: 90, Kelas Aktif: 3, Kelas Selesai: 0), dan Pengumuman Terbaru.
+- **Halaman Detail Kelas (`pages/dosen/kelas/show.blade.php`)**:
+  - Header detail mata kuliah: Kode, Section, Status, SKS, Jadwal, Ruang, dan Mahasiswa Terdaftar.
+  - Tab 1: Silabus & Pertemuan (16 pertemuan dengan badge pertemuan, topik, dan ringkasan materi/assessment).
+  - Tab 2: Daftar Mahasiswa (Tabel seluruh mahasiswa terdaftar dengan avatar, NIM, nama, prodi, dan status KRS aktif).
+  - Tab 3: Komponen Penilaian (Tabel bobot Tugas, Kuis, UTS, UAS dengan validasi total 100%).
+- **Policy & Keamanan Multi-Dosen**:
+  - `AcademicClassPolicy` memvalidasi `view` dan `manage`: Dr. Budi Rahardjo hanya dapat mengakses kelasnya sendiri. Percobaan mengakses kelas milik dosen lain menghasilkan HTTP 403 Forbidden.
+- **Pengujian Otomatis (`tests/Feature/LecturerDashboardAndClassTest.php`)**:
+  - 6 feature tests pass (30 assertions):
+    1. `test_lecturer_can_view_dashboard_with_canonical_stats`: Passed.
+    2. `test_student_cannot_access_lecturer_dashboard`: Passed (403).
+    3. `test_guest_is_redirected_to_login`: Passed (Redirect).
+    4. `test_lecturer_can_view_classes_list_and_filter_status`: Passed.
+    5. `test_lecturer_can_view_detail_of_their_class`: Passed.
+    6. `test_lecturer_cannot_view_detail_of_another_lecturer_class`: Passed (403).
+  - Total pengujian kumulatif Fase 2 & Fase 3: 18 tests passed (98 assertions) tanpa ada kegagalan.
+- **Code Style**:
+  - `vendor/bin/pint`: 100% PSR-12 compliant.
+
 

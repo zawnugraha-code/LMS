@@ -8,6 +8,8 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DemoAuthController;
 use App\Http\Controllers\DiscussionController;
+use App\Http\Controllers\Dosen\DosenClassController;
+use App\Http\Controllers\Dosen\DosenDashboardController;
 use App\Http\Controllers\Dosen\DosenPlaceholderController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\MaterialController;
@@ -47,6 +49,9 @@ Route::get('/', function () {
 Route::post('/demo/request', [DemoAuthController::class, 'storeDemoRequest'])->name('demo.request.store');
 
 // 3. Instant Role Switcher & Auth
+Route::get('/login', function () {
+    return redirect()->route('marketing.home');
+})->name('login');
 Route::get('/demo/login/{role}', [DemoAuthController::class, 'switchRole'])->name('demo.login');
 Route::post('/logout', [DemoAuthController::class, 'logout'])->name('logout');
 
@@ -118,21 +123,9 @@ Route::post('/api/copilot/ask', [AiCopilotController::class, 'ask'])->name('copi
 
 // 9. Dosen (Lecturer) Portal Routes
 Route::prefix('dosen')->middleware(['auth', 'role.dosen'])->group(function () {
-    Route::get('/', function () {
-        return view('pages.dosen.placeholder', [
-            'menuTitle' => 'Beranda Dosen',
-            'menuDescription' => 'Ringkasan aktivitas mengajar, jadwal hari ini, pengumpulan terbaru, dan pengumuman.',
-            'badgeBatch' => 'Fase 3',
-        ]);
-    })->name('dosen.dashboard');
-
-    Route::get('/kelas', function () {
-        return view('pages.dosen.placeholder', [
-            'menuTitle' => 'Kelas Saya',
-            'menuDescription' => 'Kelola kelas yang Anda ampu, pantau progres mahasiswa, dan silabus perkuliahan.',
-            'badgeBatch' => 'Fase 3',
-        ]);
-    })->name('dosen.kelas.index');
+    Route::get('/', [DosenDashboardController::class, 'index'])->name('dosen.dashboard');
+    Route::get('/kelas', [DosenClassController::class, 'index'])->name('dosen.kelas.index');
+    Route::get('/kelas/{class}', [DosenClassController::class, 'show'])->name('dosen.kelas.show');
 
     Route::get('/materi', function () {
         return view('pages.dosen.placeholder', [

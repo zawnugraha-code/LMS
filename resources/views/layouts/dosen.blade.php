@@ -27,10 +27,14 @@
         $currentRoute = request()->route()?->getName();
         // Dynamic badge count: pengumpulan yang belum dinilai milik kelas dosen
         $pendingSubmissionsCount = 0;
+        $unreadNotificationsCount = 0;
+        $recentNotifications = collect();
         if ($user && $user->role === \App\Enums\UserRole::Lecturer) {
             $pendingSubmissionsCount = \App\Models\Submission::whereNull('score')
                 ->whereHas('assignment.academicClass', fn ($q) => $q->where('lecturer_id', $user->id))
                 ->count();
+            $unreadNotificationsCount = $user->unreadNotifications()->count();
+            $recentNotifications = $user->notifications()->take(5)->get();
         }
     @endphp
 
@@ -274,8 +278,10 @@
                             class="w-8 h-8 rounded-full flex items-center justify-center text-text-muted hover:text-text hover:bg-slate-100 transition-colors relative cursor-pointer"
                         >
                             <x-icon name="bell" :size="18" />
-                            @if (($unreadNotificationsCount ?? 2) > 0)
-                                <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500"></span>
+                            @if ($unreadNotificationsCount > 0)
+                                <span class="absolute top-1.5 right-1.5 min-w-[14px] h-[14px] px-1 rounded-full bg-red-500 text-[9px] font-bold text-white flex items-center justify-center leading-none">
+                                    {{ $unreadNotificationsCount }}
+                                </span>
                             @endif
                         </button>
 
@@ -288,19 +294,22 @@
                         >
                             <div class="px-3 pb-2 border-b border-line flex items-center justify-between">
                                 <span class="font-bold text-text">Notifikasi</span>
-                                <span class="text-[11px] text-[#2563EB] hover:underline cursor-pointer">Tandai Dibaca</span>
+                                @if ($unreadNotificationsCount > 0)
+                                    <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 font-semibold">{{ $unreadNotificationsCount }} Baru</span>
+                                @endif
                             </div>
                             <div class="divide-y divide-line/60 max-h-72 overflow-y-auto">
-                                <div class="p-3 hover:bg-slate-50 transition-colors cursor-pointer">
-                                    <p class="font-medium text-text leading-snug">Pengumpulan baru Tugas 2 - OOP</p>
-                                    <p class="text-[11px] text-text-muted mt-0.5">Ahmad Fauzi mengumpulkan tugas (Terlambat)</p>
-                                    <span class="text-[10px] text-text-subtle mt-1 block">18 Okt 2026, 21:34</span>
-                                </div>
-                                <div class="p-3 hover:bg-slate-50 transition-colors cursor-pointer">
-                                    <p class="font-medium text-text leading-snug">Pengumpulan baru Tugas 1 - Analisis Sistem</p>
-                                    <p class="text-[11px] text-text-muted mt-0.5">Rizky Pratama mengumpulkan tugas (Tepat Waktu)</p>
-                                    <span class="text-[10px] text-text-subtle mt-1 block">18 Okt 2026, 16:20</span>
-                                </div>
+                                @forelse ($recentNotifications as $notif)
+                                    <div class="p-3 hover:bg-slate-50 transition-colors cursor-pointer {{ $notif->read_at ? 'opacity-70' : 'bg-blue-50/20' }}">
+                                        <p class="font-medium text-text leading-snug">{{ $notif->data['title'] ?? 'Pemberitahuan Sistem' }}</p>
+                                        <p class="text-[11px] text-text-muted mt-0.5">{{ $notif->data['message'] ?? '' }}</p>
+                                        <span class="text-[10px] text-text-subtle mt-1 block">{{ $notif->created_at->locale('id')->isoFormat('D MMM Y, HH:mm') }}</span>
+                                    </div>
+                                @empty
+                                    <div class="p-4 text-center text-text-muted text-xs">
+                                        Tidak ada notifikasi baru
+                                    </div>
+                                @endforelse
                             </div>
                         </div>
                     </div>
