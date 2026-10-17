@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Helpers\NotificationHelper;
 use App\Models\Assignment;
 use App\Notifications\AssessmentPublishedNotification;
 use Illuminate\Console\Command;
@@ -49,7 +50,7 @@ class PublishScheduledAssessments extends Command
             // Send notification to enrolled students
             $students = $assignment->academicClass?->students ?? collect();
             foreach ($students as $student) {
-                if (shouldNotify($student, 'assessment_published')) {
+                if (NotificationHelper::shouldNotify($student, 'assessment_published')) {
                     $student->notify(new AssessmentPublishedNotification($assignment));
                 }
             }

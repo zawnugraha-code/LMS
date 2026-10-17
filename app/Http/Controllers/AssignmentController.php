@@ -9,6 +9,7 @@ use App\Services\AssignmentService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class AssignmentController extends Controller
@@ -36,6 +37,10 @@ class AssignmentController extends Controller
             'submissions' => fn ($q) => $q->where('user_id', $user->id),
         ])
             ->whereIn('class_id', $classIds)
+            ->where(function ($q) {
+                $q->whereNull('status')
+                    ->orWhere('status', 'dipublikasikan');
+            })
             ->orderBy('due_at', 'asc')
             ->get();
 
@@ -78,6 +83,8 @@ class AssignmentController extends Controller
      */
     public function submitForm(Assignment $assignment): View
     {
+        Gate::authorize('view', $assignment);
+
         $user = Auth::user();
 
         // Security check: verify enrollment

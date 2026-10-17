@@ -12,7 +12,7 @@ Dokumen ini mencatat keputusan arsitektural, skema tabel, komponen UI, route, da
 | **Fase 1** | Analisis Repo + Audit Mahasiswa + Perencanaan Batch 1 | **SELESAI** | Selesai pada 17 Okt 2026. Dokumen `PLAN.md` telah disahkan. |
 | **Fase 2** | Fondasi Data: Migration, Model, Policy, Seeder, Scheduler, Route Placeholder | **SELESAI** | Selesai pada 17 Okt 2026. 2 migration ran, 10 feature tests pass, 100% Pint. |
 | **Fase 3** | Layout Dosen (`layouts.dosen`) + Beranda + Kelas Saya (+ Detail Kelas) | **SELESAI** | Selesai pada 17 Okt 2026. Layout + Beranda + Kelas Saya + Detail Kelas + Policy Isolation + Tests 100% Pass. |
-| **Fase 4** | Modul Tugas & Ujian + Integrasi Tampil di Mahasiswa | Menunggu | - |
+| **Fase 4** | Modul Tugas & Ujian + Integrasi Tampil di Mahasiswa | **SELESAI** | Selesai pada 17 Okt 2026. CRUD, Donut SVG, Scheduler auto-publish, student policy & 8 feature tests pass. |
 | **Fase 5** | Modul Pengumpulan + Penilaian + Notifikasi + Badge Dinamis | Menunggu | - |
 | **Fase 6** | Modul Materi Pembelajaran + Pengumuman Kelas & Akademik | Menunggu | - |
 | **Fase 7** | QA Akhir Batch 1: Testing, Cek N+1, Visual Freeze Verification | Menunggu | - |
@@ -135,5 +135,45 @@ Dokumen ini mencatat keputusan arsitektural, skema tabel, komponen UI, route, da
   - Total pengujian kumulatif Fase 2 & Fase 3: 18 tests passed (98 assertions) tanpa ada kegagalan.
 - **Code Style**:
   - `vendor/bin/pint`: 100% PSR-12 compliant.
+
+---
+
+## 7. HASIL VERIFIKASI FASE 4
+
+- **Halaman Indeks Tugas & Ujian (`pages/dosen/tugas/index.blade.php`)**:
+  - Sesuai dengan tangkapan layar acuan (Screenshot 4).
+  - 2 Kartu Pembuatan Cepat: *Buat Tugas* (individu/kelompok, lampiran, rubrik) dan *Buat Kuis / Ujian* (bank soal, jadwal, durasi).
+  - Filter Tabs (`Semua`, `Tugas`, `Kuis`, `UTS`, `UAS`) serta Dropdown Semester & Filter Mata Kuliah.
+  - Tabel Daftar Assessment dengan kolom: `No`, `Judul Assessment`, `Mata Kuliah`, `Kelas`, `Jenis`, `Jadwal`, `Status`, dan tombol `Kelola` (Ubah, Publikasikan, Arsipkan, Hapus).
+  - Paginasi navigasi halaman numerik `< [1] [2] >` dan teks penghitung `Menampilkan 1-10 dari 12 assessment`.
+  - Widget Kanan 1 (Ringkasan Assessment): Mini live search judul dan 4 metrik tiles (`Total = 12`, `Tugas = 7`, `Kuis/Ujian = 5`, `Menunggu Publikasi = 3`).
+  - Widget Kanan 2 (Status Publikasi): Pure SVG Donut Chart responsif dengan angka `12 Total` di tengah dan legenda persentase presisi (`Dipublikasikan 7 (58%)`, `Draft 2 (17%)`, `Terjadwal 1 (8%)`, `Arsip 2 (17%)`).
+  - Widget Kanan 3 (Tugas & Ujian Terdekat): 4 baris jadwal tugas/kuis terdekat dengan status waktu.
+- **Formulir Buat & Ubah Assessment (`pages/dosen/tugas/create.blade.php` & `edit.blade.php`)**:
+  - Sesuai spesifikasi *Unseen Pages* (Sub-halaman 5.1):
+    - Pilihan Kelas Dosen, Radio pill jenis (`tugas`, `kuis`, `uts`, `uas`), mode (`individu`/`kelompok`), dan metode pengumpulan (`unggah_berkas`/`input_manual`).
+    - Input Judul, Instruksi (textarea), dropzone berkas panduan/soal (PDF/ZIP/DOCX maks 10MB).
+    - Pengaturan waktu mulai, tenggat deadline, skor maksimum (default 100), dan toggle toleransi keterlambatan.
+    - Panel kanan pilihan publikasi: `Publikasikan Sekarang` (langsung aktif), `Terjadwal` (tanggal rilis otomatis), atau `Draft`.
+- **Interkoneksi Dua Arah dengan Mahasiswa**:
+  - Mahasiswa yang terdaftar hanya dapat melihat assessment berstatus `dipublikasikan` pada halaman `app.assignments`.
+  - Assessment berstatus `draft` atau `terjadwal` otomatis disembunyikan dari mahasiswa.
+  - Percobaan mahasiswa membuka formulir submit pada tugas berstatus `draft` diblokir dengan kode HTTP 403 Forbidden via `AssignmentPolicy`.
+  - Ketika dosen mempublikasikan tugas (`publishNow`), tugas langsung muncul di dashboard mahasiswa dan mahasiswa dapat mengunggah berkas pengumpulan.
+  - Command scheduler `app:publish-scheduled-assessments` otomatis merilis tugas terjadwal saat waktu acuan tiba dan mengirim notifikasi database ke mahasiswa kelas bersangkutan.
+- **Pengujian Otomatis (`tests/Feature/LecturerAssessmentTest.php`)**:
+  - 8 feature tests pass (30 assertions):
+    1. `test_lecturer_can_view_tugas_dan_ujian_index_with_canonical_stats`: Passed.
+    2. `test_lecturer_can_filter_assessments_by_jenis`: Passed.
+    3. `test_lecturer_can_view_create_form`: Passed.
+    4. `test_lecturer_can_create_draft_and_student_cannot_see_it`: Passed (Disembunyikan + 403 pada direct URL).
+    5. `test_lecturer_can_publish_assessment_and_student_can_see_it`: Passed (Muncul seketika + 200 pada direct URL).
+    6. `test_scheduled_assessment_auto_published_by_artisan_command`: Passed.
+    7. `test_lecturer_can_archive_assessment`: Passed.
+    8. `test_lecturer_cannot_update_another_lecturer_assessment`: Passed (403 isolasi antar-dosen).
+  - Total pengujian kumulatif Fase 2, 3, dan 4: 26 tests passed (128 assertions) dengan 0 kegagalan.
+- **Code Style**:
+  - `vendor/bin/pint`: 100% PSR-12 compliant.
+
 
 

@@ -677,7 +677,7 @@ class LecturerBatch1Seeder extends Seeder
                     'max_score' => 100,
                     'due_at' => Carbon::create(2026, 11, 12, 13, 0, 0),
                     'publish_at' => Carbon::create(2026, 10, 17, 13, 0, 0),
-                    'status' => 'dipublikasikan',
+                    'status' => 'arsip',
                 ]
             ),
 

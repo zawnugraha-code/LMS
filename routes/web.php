@@ -8,6 +8,7 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DemoAuthController;
 use App\Http\Controllers\DiscussionController;
+use App\Http\Controllers\Dosen\DosenAssessmentController;
 use App\Http\Controllers\Dosen\DosenClassController;
 use App\Http\Controllers\Dosen\DosenDashboardController;
 use App\Http\Controllers\Dosen\DosenPlaceholderController;
@@ -135,21 +136,14 @@ Route::prefix('dosen')->middleware(['auth', 'role.dosen'])->group(function () {
         ]);
     })->name('dosen.materi.index');
 
-    Route::get('/tugas', function () {
-        return view('pages.dosen.placeholder', [
-            'menuTitle' => 'Tugas & Ujian',
-            'menuDescription' => 'Kelola assessment, tugas individu/kelompok, kuis, UTS, dan UAS.',
-            'badgeBatch' => 'Fase 4',
-        ]);
-    })->name('dosen.tugas.index');
-
-    Route::get('/tugas/buat', function () {
-        return view('pages.dosen.placeholder', [
-            'menuTitle' => 'Buat Tugas / Ujian',
-            'menuDescription' => 'Formulir pembuatan tugas, kuis, atau ujian baru.',
-            'badgeBatch' => 'Fase 4',
-        ]);
-    })->name('dosen.tugas.create');
+    Route::get('/tugas', [DosenAssessmentController::class, 'index'])->name('dosen.tugas.index');
+    Route::get('/tugas/buat', [DosenAssessmentController::class, 'create'])->name('dosen.tugas.create');
+    Route::post('/tugas', [DosenAssessmentController::class, 'store'])->name('dosen.tugas.store');
+    Route::get('/tugas/{assignment}/edit', [DosenAssessmentController::class, 'edit'])->name('dosen.tugas.edit');
+    Route::put('/tugas/{assignment}', [DosenAssessmentController::class, 'update'])->name('dosen.tugas.update');
+    Route::post('/tugas/{assignment}/publish', [DosenAssessmentController::class, 'publish'])->name('dosen.tugas.publish');
+    Route::post('/tugas/{assignment}/archive', [DosenAssessmentController::class, 'archive'])->name('dosen.tugas.archive');
+    Route::delete('/tugas/{assignment}', [DosenAssessmentController::class, 'destroy'])->name('dosen.tugas.destroy');
 
     Route::get('/penilaian', function () {
         return view('pages.dosen.placeholder', [

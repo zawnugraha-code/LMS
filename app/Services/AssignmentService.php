@@ -89,6 +89,7 @@ class AssignmentService
         // Upcoming assignments
         $assignments = Assignment::with(['academicClass.course'])
             ->whereIn('class_id', $classIds)
+            ->where(fn ($q) => $q->whereNull('status')->orWhere('status', 'dipublikasikan'))
             ->where('due_at', '>=', now()->subDays(20))
             ->orderBy('due_at', 'asc')
             ->get();
