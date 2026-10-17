@@ -14,7 +14,7 @@ Dokumen ini mencatat keputusan arsitektural, skema tabel, komponen UI, route, da
 | **Fase 3** | Layout Dosen (`layouts.dosen`) + Beranda + Kelas Saya (+ Detail Kelas) | **SELESAI** | Selesai pada 17 Okt 2026. Layout + Beranda + Kelas Saya + Detail Kelas + Policy Isolation + Tests 100% Pass. |
 | **Fase 4** | Modul Tugas & Ujian + Integrasi Tampil di Mahasiswa | **SELESAI** | Selesai pada 17 Okt 2026. CRUD, Donut SVG, Scheduler auto-publish, student policy & 8 feature tests pass. |
 | **Fase 5** | Modul Pengumpulan + Penilaian + Notifikasi + Badge Dinamis | **SELESAI** | Selesai pada 17 Okt 2026. Halaman Penilaian (Screenshot 5), Workspace Penilaian, bidirectional notifications, dynamic badge, 8 feature tests pass. |
-| **Fase 6** | Modul Materi Pembelajaran + Pengumuman Kelas & Akademik | Menunggu | - |
+| **Fase 6** | Modul Materi Pembelajaran + Pengumuman Kelas & Akademik | **SELESAI** | Selesai pada 17 Okt 2026. Halaman Materi (16 pertemuan), Modal Upload/Edit, Toggle Publish/Draft, Pengumuman Kelas, 9 feature tests pass. |
 | **Fase 7** | QA Akhir Batch 1: Testing, Cek N+1, Visual Freeze Verification | Menunggu | - |
 
 ---
@@ -225,3 +225,59 @@ Dokumen ini mencatat keputusan arsitektural, skema tabel, komponen UI, route, da
 
 - **Code Style**:
   - `vendor/bin/pint`: 100% PSR-12 compliant.
+
+---
+
+## 9. HASIL VERIFIKASI FASE 6
+
+- **Halaman Manajemen Materi Pembelajaran (`pages/dosen/materi/index.blade.php`)**:
+  - Mengimplementasikan spesifikasi *Unseen Pages* (Sub-halaman 5.2):
+    - **Header & Kelas Selector**: Tombol navigasi pemilihan kelas aktif (IF2101 Kelas A, IF2101 Kelas B, IF2103 Kelas A).
+    - **4 Top Stat Cards**:
+      - `Total Materi`: 7 materi (di IF2101 Kelas A).
+      - `Terpublikasi`: 6 materi aktif dapat diakses mahasiswa.
+      - `Materi Draft`: 1 materi draft (`Dataset Latihan`) tersembunyi dari mahasiswa.
+      - `Pertemuan Terisi`: 6 / 16 pertemuan terisi silabus.
+    - **Filter Bar**: Filter tipe (`Semua`, `PDF`, `Slide`, `Video`, `Tautan`, `ZIP`), filter status (`Semua`, `Terpublikasi`, `Draft`), dan pencarian teks judul/ringkasan.
+    - **Daftar Pertemuan 1 s/d 16**:
+      - Setiap pertemuan menampilkan badge minggu, judul topik, tanggal pertemuan, jumlah materi, dan tombol cepat `+ Tambah`.
+      - Menampilkan pertemuan UTS (Minggu 8) dan UAS (Minggu 16) dengan styling warna khas.
+      - Kartu materi per pertemuan menampilkan ikon tipe materi berwarna (PDF merah, Slide kuning/oranye, Video ungu, Tautan hijau, ZIP biru), judul tebal, ringkasan, tanggal unggah, dan badge status (`Dipublikasikan` / `Draft`).
+      - Tombol aksi pada setiap materi: `Unduh`/`Buka URL`, `Publikasikan`/`Draftkan` (toggle status satu klik), `Ubah` (modal edit), dan `Hapus` (konfirmasi pengamanan).
+    - **Modal Unggah Materi Baru**:
+      - Pilihan pertemuan 1–16, judul materi, tipe materi, deskripsi/ringkasan, berkas lampiran (maks 50MB) atau tautan URL eksternal, pilihan status langsung terbit vs simpan sebagai draft, dan izin pengunduhan.
+    - **Modal Ubah Materi**:
+      - Form dinamis JavaScript untuk mengedit data materi, mengganti berkas lampiran, atau memindahkan materi ke pertemuan lain.
+    - **Widget Samping**:
+      - Widget Pengumuman Kelas dengan tombol `+ Tambah` dan tombol hapus untuk pengumuman yang dibuat oleh dosen.
+      - Widget Panduan Silabus & RPS (pembagian materi pra-UTS, UTS minggu 8, pasca-UTS, dan UAS minggu 16).
+      - Tautan Cepat ke Detail Kelas, Tugas & Ujian, serta Penilaian.
+
+- **Modul Pengumuman Kelas & Akademik**:
+  - Dosen dapat membuat pengumuman baru untuk kelas tertentu maupun seluruh kelas yang diampunya.
+  - Form modal pengumuman: Target Kelas, Judul Pengumuman, dan Isi Pengumuman (textarea).
+  - Pengumuman tersimpan di database dengan relasi `author_id` dan `class_id`, serta otomatis tampil di daftar pengumuman kelas dosen dan kelas mahasiswa.
+  - Dosen dapat menghapus pengumuman yang dimilikinya. Dosen lain diblokir dari menghapus pengumuman tersebut (403 Forbidden).
+
+- **Interkoneksi Dua Arah & Proteksi Hak Akses Mahasiswa**:
+  - `MaterialService@getSummary` dan `MaterialService@getChapters` diperbarui untuk hanya menyajikan materi dengan `status = 'published'` kepada mahasiswa.
+  - Mahasiswa tidak dapat melihat materi berstatus `draft` pada halaman materi perkuliahan (`app.materials`).
+  - Percobaan mahasiswa mengakses langsung URL materi yang berstatus `draft` (`app.materials.view`) ditolak secara ketat dengan status HTTP 403 Forbidden via `MaterialPolicy@view`.
+  - Ketika dosen mengubah status materi dari draft menjadi published melalui tombol toggle (`dosen.materi.toggle_publish`), materi seketika muncul di dashboard mahasiswa dan halaman materi mahasiswa dapat diakses dengan status HTTP 200 OK.
+
+- **Pengujian Otomatis (`tests/Feature/LecturerMaterialTest.php`)**:
+  - 9 feature tests pass (41 assertions):
+    1. `test_lecturer_can_view_materi_index_with_canonical_materials`: Passed (Status 200, summary 7, 6, 1, canonical materials verified).
+    2. `test_lecturer_can_switch_classes_in_materi_page`: Passed (Active class switched correctly).
+    3. `test_lecturer_can_upload_new_material`: Passed (Upload file stored to public disk, record created in DB).
+    4. `test_draft_material_is_hidden_from_student_and_blocked_on_direct_access`: Passed (Hidden on list + 403 Forbidden on direct URL).
+    5. `test_lecturer_can_toggle_publish_material_and_student_can_now_access_it`: Passed (Toggled to published, visible to student + 200 OK on viewer).
+    6. `test_lecturer_can_update_material`: Passed (Material title & type updated).
+    7. `test_lecturer_can_delete_material`: Passed (Material removed from DB and storage).
+    8. `test_lecturer_cannot_manage_another_lecturer_material`: Passed (403 Forbidden data isolation).
+    9. `test_lecturer_can_create_announcement_and_delete_it`: Passed (Announcement created and deleted).
+  - Total pengujian kumulatif modul dosen: 43 tests passed (178 assertions) dengan 0 kegagalan.
+
+- **Code Style**:
+  - `vendor/bin/pint`: 100% PSR-12 compliant.
+

@@ -61,6 +61,7 @@ class MaterialService
     public function getSummary(User $user, AcademicClass $class): array
     {
         $materials = Material::with('meeting')
+            ->where('status', 'published')
             ->whereHas('meeting', fn ($q) => $q->where('class_id', $class->id))
             ->get();
         $total = $materials->count();
@@ -126,7 +127,10 @@ class MaterialService
         $class->loadMissing(['course.curriculum.program', 'lecturer']);
 
         $meetings = $class->meetings()
-            ->with(['materials.progress' => fn ($q) => $q->where('user_id', $user->id)])
+            ->with([
+                'materials' => fn ($q) => $q->where('status', 'published'),
+                'materials.progress' => fn ($q) => $q->where('user_id', $user->id),
+            ])
             ->orderBy('week')
             ->get();
 

@@ -12,6 +12,7 @@ use App\Http\Controllers\Dosen\DosenAssessmentController;
 use App\Http\Controllers\Dosen\DosenClassController;
 use App\Http\Controllers\Dosen\DosenDashboardController;
 use App\Http\Controllers\Dosen\DosenGradingController;
+use App\Http\Controllers\Dosen\DosenMaterialController;
 use App\Http\Controllers\Dosen\DosenPlaceholderController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\MaterialController;
@@ -129,13 +130,14 @@ Route::prefix('dosen')->middleware(['auth', 'role.dosen'])->group(function () {
     Route::get('/kelas', [DosenClassController::class, 'index'])->name('dosen.kelas.index');
     Route::get('/kelas/{class}', [DosenClassController::class, 'show'])->name('dosen.kelas.show');
 
-    Route::get('/materi', function () {
-        return view('pages.dosen.placeholder', [
-            'menuTitle' => 'Materi Pembelajaran',
-            'menuDescription' => 'Kelola materi per pertemuan perkuliahan, slide, modul, dan video pembelajaran.',
-            'badgeBatch' => 'Fase 6',
-        ]);
-    })->name('dosen.materi.index');
+    Route::get('/materi', [DosenMaterialController::class, 'index'])->name('dosen.materi.index');
+    Route::post('/materi', [DosenMaterialController::class, 'store'])->name('dosen.materi.store');
+    Route::put('/materi/{material}', [DosenMaterialController::class, 'update'])->name('dosen.materi.update');
+    Route::post('/materi/{material}/toggle-publish', [DosenMaterialController::class, 'togglePublish'])->name('dosen.materi.toggle_publish');
+    Route::delete('/materi/{material}', [DosenMaterialController::class, 'destroy'])->name('dosen.materi.destroy');
+
+    Route::post('/pengumuman', [DosenMaterialController::class, 'storeAnnouncement'])->name('dosen.pengumuman.store');
+    Route::delete('/pengumuman/{announcement}', [DosenMaterialController::class, 'destroyAnnouncement'])->name('dosen.pengumuman.destroy');
 
     Route::get('/tugas', [DosenAssessmentController::class, 'index'])->name('dosen.tugas.index');
     Route::get('/tugas/buat', [DosenAssessmentController::class, 'create'])->name('dosen.tugas.create');

@@ -11,6 +11,7 @@ use App\Services\MaterialService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class MaterialController extends Controller
@@ -101,6 +102,8 @@ class MaterialController extends Controller
 
         $meeting = $material->meeting;
         $class = $meeting?->academicClass;
+
+        Gate::authorize('view', $material);
 
         if ($class && $class->isLocked()) {
             abort(403, 'Mata kuliah ini belum dimulai atau masih berstatus Akan Datang.');
