@@ -18,6 +18,7 @@ class Submission extends Model
         'file_path',
         'score',
         'status',
+        'status_waktu',
         'feedback',
         'rubric_scores',
         'submitted_at',
@@ -48,5 +49,30 @@ class Submission extends Model
     public function grader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'graded_by');
+    }
+
+    public function getMahasiswaIdAttribute()
+    {
+        return $this->user_id;
+    }
+
+    public function getNilaiAttribute()
+    {
+        return $this->score;
+    }
+
+    public function getCatatanAttribute()
+    {
+        return $this->content;
+    }
+
+    public function getDinilaiAtAttribute()
+    {
+        return $this->graded_at;
+    }
+
+    public function getDinilaiOlehAttribute()
+    {
+        return $this->graded_by;
     }
 }

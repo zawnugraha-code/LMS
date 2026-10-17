@@ -27,11 +27,14 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'gelar',
         'email',
         'password',
         'campus_id',
         'role',
         'identifier',
+        'prodi',
+        'jabatan',
         'avatar_path',
         'phone',
         'locale',
@@ -156,6 +159,21 @@ class User extends Authenticatable
     public function supportTickets(): HasMany
     {
         return $this->hasMany(SupportTicket::class);
+    }
+
+    public function classesTaught(): HasMany
+    {
+        return $this->hasMany(AcademicClass::class, 'lecturer_id');
+    }
+
+    public function assignmentsTaught(): HasMany
+    {
+        return $this->hasMany(Assignment::class, 'dosen_id');
+    }
+
+    public function announcements(): HasMany
+    {
+        return $this->hasMany(Announcement::class, 'author_id');
     }
 
     public function totalXp(): int

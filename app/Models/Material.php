@@ -14,12 +14,15 @@ class Material extends Model
 
     protected $fillable = [
         'meeting_id',
+        'class_id',
         'title',
         'type',
         'content',
         'file_path',
         'external_url',
         'is_downloadable',
+        'status',
+        'uploaded_by',
         'order',
     ];
 
@@ -36,8 +39,23 @@ class Material extends Model
         return $this->belongsTo(Meeting::class);
     }
 
+    public function academicClass(): BelongsTo
+    {
+        return $this->belongsTo(AcademicClass::class, 'class_id');
+    }
+
+    public function uploader(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
     public function progress(): HasMany
     {
         return $this->hasMany(MaterialProgress::class, 'material_id');
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'published');
     }
 }

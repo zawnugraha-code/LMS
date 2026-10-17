@@ -25,6 +25,7 @@ class AcademicClass extends Model
         'start_time',
         'end_time',
         'capacity',
+        'status',
         'settings',
     ];
 
@@ -76,6 +77,21 @@ class AcademicClass extends Model
     public function quizzes(): HasMany
     {
         return $this->hasMany(Quiz::class, 'class_id');
+    }
+
+    public function assessmentComponents(): HasMany
+    {
+        return $this->hasMany(CourseAssessmentComponent::class, 'class_id');
+    }
+
+    public function announcements(): HasMany
+    {
+        return $this->hasMany(Announcement::class, 'class_id');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'aktif');
     }
 
     public function isLocked(): bool

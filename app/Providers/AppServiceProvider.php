@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\NotificationService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
@@ -15,7 +16,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        require_once app_path('Helpers/NotificationHelper.php');
     }
 
     /**
@@ -25,8 +26,13 @@ class AppServiceProvider extends ServiceProvider
     {
         Model::preventLazyLoading(! app()->isProduction());
 
+        // Support for APP_FAKE_NOW (Carbon::setTestNow) for local demo dates
+        if (! app()->isProduction() && env('APP_FAKE_NOW')) {
+            Carbon::setTestNow(Carbon::parse(env('APP_FAKE_NOW')));
+        }
+
         // Global Layout Notifications & User Preferences View Composer
-        View::composer('layouts.app', function ($view) {
+        View::composer(['layouts.app', 'layouts.dosen'], function ($view) {
             if (Auth::check()) {
                 $user = Auth::user();
                 $notifService = app(NotificationService::class);

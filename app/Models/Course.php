@@ -19,6 +19,7 @@ class Course extends Model
         'credits',
         'semester',
         'description',
+        'cover_path',
         'syllabus',
     ];
 

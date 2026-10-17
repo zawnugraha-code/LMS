@@ -8,6 +8,7 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DemoAuthController;
 use App\Http\Controllers\DiscussionController;
+use App\Http\Controllers\Dosen\DosenPlaceholderController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\NotificationController;
@@ -114,3 +115,60 @@ Route::prefix('/app')->group(function () {
 Route::get('/app/copilot', [AiCopilotController::class, 'index'])->name('app.copilot');
 Route::get('/api/copilot/suggestions', [AiCopilotController::class, 'suggestions'])->name('copilot.suggestions');
 Route::post('/api/copilot/ask', [AiCopilotController::class, 'ask'])->name('copilot.ask');
+
+// 9. Dosen (Lecturer) Portal Routes
+Route::prefix('dosen')->middleware(['auth', 'role.dosen'])->group(function () {
+    Route::get('/', function () {
+        return view('pages.dosen.placeholder', [
+            'menuTitle' => 'Beranda Dosen',
+            'menuDescription' => 'Ringkasan aktivitas mengajar, jadwal hari ini, pengumpulan terbaru, dan pengumuman.',
+            'badgeBatch' => 'Fase 3',
+        ]);
+    })->name('dosen.dashboard');
+
+    Route::get('/kelas', function () {
+        return view('pages.dosen.placeholder', [
+            'menuTitle' => 'Kelas Saya',
+            'menuDescription' => 'Kelola kelas yang Anda ampu, pantau progres mahasiswa, dan silabus perkuliahan.',
+            'badgeBatch' => 'Fase 3',
+        ]);
+    })->name('dosen.kelas.index');
+
+    Route::get('/materi', function () {
+        return view('pages.dosen.placeholder', [
+            'menuTitle' => 'Materi Pembelajaran',
+            'menuDescription' => 'Kelola materi per pertemuan perkuliahan, slide, modul, dan video pembelajaran.',
+            'badgeBatch' => 'Fase 6',
+        ]);
+    })->name('dosen.materi.index');
+
+    Route::get('/tugas', function () {
+        return view('pages.dosen.placeholder', [
+            'menuTitle' => 'Tugas & Ujian',
+            'menuDescription' => 'Kelola assessment, tugas individu/kelompok, kuis, UTS, dan UAS.',
+            'badgeBatch' => 'Fase 4',
+        ]);
+    })->name('dosen.tugas.index');
+
+    Route::get('/tugas/buat', function () {
+        return view('pages.dosen.placeholder', [
+            'menuTitle' => 'Buat Tugas / Ujian',
+            'menuDescription' => 'Formulir pembuatan tugas, kuis, atau ujian baru.',
+            'badgeBatch' => 'Fase 4',
+        ]);
+    })->name('dosen.tugas.create');
+
+    Route::get('/penilaian', function () {
+        return view('pages.dosen.placeholder', [
+            'menuTitle' => 'Penilaian',
+            'menuDescription' => 'Kelola dan nilai berkas pengumpulan tugas, kuis, dan ujian mahasiswa.',
+            'badgeBatch' => 'Fase 5',
+        ]);
+    })->name('dosen.penilaian.index');
+
+    // 4 Menu Batch 2 Placeholders
+    Route::get('/presensi', [DosenPlaceholderController::class, 'presensi'])->name('dosen.presensi.index');
+    Route::get('/buku-nilai', [DosenPlaceholderController::class, 'bukuNilai'])->name('dosen.buku-nilai.index');
+    Route::get('/diskusi', [DosenPlaceholderController::class, 'diskusi'])->name('dosen.diskusi.index');
+    Route::get('/pengaturan', [DosenPlaceholderController::class, 'pengaturan'])->name('dosen.pengaturan.edit');
+});

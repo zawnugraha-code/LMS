@@ -16,10 +16,18 @@ class Assignment extends Model
     protected $fillable = [
         'meeting_id',
         'class_id',
+        'dosen_id',
+        'jenis',
+        'mode',
+        'metode',
         'title',
         'description',
+        'lampiran_path',
         'max_score',
+        'mulai_at',
         'due_at',
+        'publish_at',
+        'status',
         'late_policy',
         'allow_resubmit',
         'rubric',
@@ -30,7 +38,9 @@ class Assignment extends Model
     {
         return [
             'max_score' => 'decimal:2',
+            'mulai_at' => 'datetime',
             'due_at' => 'datetime',
+            'publish_at' => 'datetime',
             'allow_resubmit' => 'boolean',
             'rubric' => 'array',
             'settings' => 'array',
@@ -47,6 +57,11 @@ class Assignment extends Model
         return $this->belongsTo(Meeting::class);
     }
 
+    public function lecturer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'dosen_id');
+    }
+
     public function submissions(): HasMany
     {
         return $this->hasMany(Submission::class);
@@ -55,5 +70,31 @@ class Assignment extends Model
     public function userSubmission(int $userId): HasOne
     {
         return $this->hasOne(Submission::class)->where('user_id', $userId);
+    }
+
+    public function getDeadlineAtAttribute()
+    {
+        return $this->due_at;
+    }
+
+    public function getNilaiMaksAttribute()
+    {
+        return $this->max_score;
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'dipublikasikan')
+            ->where(function ($q) {
+                $q->whereNull('publish_at')->orWhere('publish_at', '<=', now());
+            });
+    }
+
+    public function scopeForDosen($query, int $dosenId)
+    {
+        return $query->where(function ($q) use ($dosenId) {
+            $q->where('dosen_id', $dosenId)
+                ->orWhereHas('academicClass', fn ($cq) => $cq->where('lecturer_id', $dosenId));
+        });
     }
 }

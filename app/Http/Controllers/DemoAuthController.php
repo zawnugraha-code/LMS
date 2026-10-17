@@ -36,7 +36,9 @@ class DemoAuthController extends Controller
             session()->forget('active_campus_id');
         }
 
-        return redirect()->route('app.dashboard')->with('success', "Beralih peran sebagai {$user->name} ({$roleEnum->label()})");
+        $targetRoute = $user->role === UserRole::Lecturer ? 'dosen.dashboard' : 'app.dashboard';
+
+        return redirect()->route($targetRoute)->with('success', "Beralih peran sebagai {$user->name} ({$roleEnum->label()})");
     }
 
     /**

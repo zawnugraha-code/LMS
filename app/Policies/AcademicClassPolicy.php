@@ -50,4 +50,16 @@ class AcademicClassPolicy
             ->whereIn('status', ['enrolled', 'completed'])
             ->exists();
     }
+
+    /**
+     * Determine whether the user can manage this class (materials, assessments, grades).
+     */
+    public function manage(User $user, AcademicClass $class): bool
+    {
+        if (in_array($user->role, [UserRole::SuperAdmin, UserRole::CampusAdmin])) {
+            return true;
+        }
+
+        return $user->role === UserRole::Lecturer && $class->lecturer_id === $user->id;
+    }
 }
