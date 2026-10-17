@@ -22,7 +22,9 @@ class DemoAuthController extends Controller
             return redirect()->back()->with('error', 'Role tidak valid.');
         }
 
-        $user = User::where('role', $roleEnum)->first();
+        $user = ($roleEnum === UserRole::Lecturer)
+            ? (User::where('email', 'dosen@arunika.test')->first() ?? User::where('role', $roleEnum)->first())
+            : User::where('role', $roleEnum)->first();
 
         if (! $user) {
             return redirect()->back()->with('error', "User demo dengan role {$roleEnum->label()} tidak ditemukan.");

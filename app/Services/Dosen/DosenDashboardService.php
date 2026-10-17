@@ -59,7 +59,7 @@ class DosenDashboardService
         // Hari ini (misal: 'Senin')
         $dayName = now()->locale('id')->isoFormat('dddd');
 
-        return AcademicClass::with(['course'])
+        return AcademicClass::with(['course', 'meetings'])
             ->where('lecturer_id', $dosen->id)
             ->where('term_id', $term->id)
             ->where('status', 'aktif')
@@ -72,8 +72,8 @@ class DosenDashboardService
             ->get()
             ->map(function ($class) {
                 // Hitung pertemuan saat ini berdasarkan tanggal atau pertemuan terakhir
-                $completedMeetings = $class->meetings()
-                    ->where('date', '<=', now())
+                $completedMeetings = $class->meetings
+                    ->where('date', '<=', now()->toDateString())
                     ->count();
                 $class->current_meeting_number = max(1, $completedMeetings);
 

@@ -15,7 +15,7 @@ Dokumen ini mencatat keputusan arsitektural, skema tabel, komponen UI, route, da
 | **Fase 4** | Modul Tugas & Ujian + Integrasi Tampil di Mahasiswa | **SELESAI** | Selesai pada 17 Okt 2026. CRUD, Donut SVG, Scheduler auto-publish, student policy & 8 feature tests pass. |
 | **Fase 5** | Modul Pengumpulan + Penilaian + Notifikasi + Badge Dinamis | **SELESAI** | Selesai pada 17 Okt 2026. Halaman Penilaian (Screenshot 5), Workspace Penilaian, bidirectional notifications, dynamic badge, 8 feature tests pass. |
 | **Fase 6** | Modul Materi Pembelajaran + Pengumuman Kelas & Akademik | **SELESAI** | Selesai pada 17 Okt 2026. Halaman Materi (16 pertemuan), Modal Upload/Edit, Toggle Publish/Draft, Pengumuman Kelas, 9 feature tests pass. |
-| **Fase 7** | QA Akhir Batch 1: Testing, Cek N+1, Visual Freeze Verification | Menunggu | - |
+| **Fase 7** | QA Akhir Batch 1: Testing, Cek N+1, Visual Freeze Verification | **SELESAI** | Selesai pada 17 Okt 2026. 135 tests passed (781 assertions), 0 N+1, 5 screenshot visual freeze verified, 4 placeholder Batch 2 ready. |
 
 ---
 
@@ -280,4 +280,66 @@ Dokumen ini mencatat keputusan arsitektural, skema tabel, komponen UI, route, da
 
 - **Code Style**:
   - `vendor/bin/pint`: 100% PSR-12 compliant.
+
+---
+
+## 10. HASIL VERIFIKASI FASE 7 (QA AKHIR BATCH 1, AUDIT N+1, VISUAL FREEZE & KESIAPAN BATCH 2)
+
+- **Audit & Eliminasi Query N+1**:
+  - `DosenDashboardService`:
+    - Eager-loading `meetings` pada `getTodaySchedule` sehingga kalkulasi `current_meeting_number` dieksekusi in-memory tanpa query berulang dalam loop.
+    - Eager-loading relasi bersarang: `Submission::with(['user', 'assignment.academicClass.course'])`, `Assignment::with(['academicClass.course'])`, `Announcement::with('academicClass.course')`.
+  - `DosenClassService`:
+    - Eager-loading `with(['course.curriculum.program', 'meetings.materials', 'enrollments'])` untuk pengelompokan mata kuliah & kelas, serta `loadMissing` pada detail kelas.
+  - `DosenAssessmentService`:
+    - Eager-loading `with(['academicClass.course', 'submissions'])`.
+  - `DosenGradingService`:
+    - Eager-loading `with(['academicClass.course', 'academicClass.enrollments', 'submissions.user'])`.
+  - `DosenMaterialService`:
+    - Eager-loading seluruh materi kelas dalam 1 query terpusat, kemudian dikelompokkan per pertemuan in-memory via `$allMaterials->groupBy('meeting_id')` (0 N+1 queries).
+  - `MaterialService`:
+    - Eager-loading `with(['materials' => fn ($q) => $q->where('status', 'published'), 'materials.progress'])`.
+
+- **Visual Freeze Verification (Kesesuaian 5 Desain Acuan)**:
+  1. **Screenshot 1 — Beranda Dosen (`pages/dosen/dashboard.blade.php`)**:
+     - Sidebar 234px Navy Academic (`#1A2E5E`), logo inverse, 9 menu urut, badge dinamis merah `14` pada Penilaian.
+     - Topbar putih bersih dengan live search, breadcrumb bertingkat, popover 2 notifikasi unread Dr. Budi Rahardjo, dan profil dropdown.
+     - Banner sambutan dengan pill S1 Teknik Informatika, semester aktif, dan tanggal acuan Senin 19 Oktober 2026.
+     - 4 Stat Cards: `Kelas Diampu (3)`, `Total Mahasiswa (90)`, `Tugas Aktif (5)`, `Perlu Dinilai (14)`.
+     - Jadwal Mengajar Hari Ini (3 sesi Senin dengan penanda Pertemuan 5 & 4).
+     - Pengumpulan Terbaru: 5 mahasiswa teratas (Ahmad Fauzi, Siti Nurhaliza, Rizky Pratama, Dewi Lestari, Fajar Nugroho) dengan badge status keterlambatan `Terlambat` & `Tepat Waktu`.
+     - Widget kanan: Pengumuman Terbaru, Tugas Deadline Terdekat (tenggat `3 hari lagi`, `5 hari lagi`, `8 hari lagi`), dan Pengumuman Akademik.
+  2. **Screenshot 2 — Kelas Saya (`pages/dosen/kelas/index.blade.php`)**:
+     - Filter tabs status (`Semua Kelas`, `Aktif (3)`, `Selesai (0)`).
+     - Grup IF2101 (Kelas A: 32 mhs, progress 78%; Kelas B: 30 mhs, progress 65%) dan IF2103 (Kelas A: 28 mhs, progress 72%).
+     - Timeline jadwal hari ini, 2x2 grid ringkasan kelas, dan pengumuman kelas.
+  3. **Screenshot 3 — Detail Kelas (`pages/dosen/kelas/show.blade.php`)**:
+     - Header info mata kuliah, section, jadwal, dan mahasiswa terdaftar.
+     - Tab 1: Silabus 16 pertemuan lengkap dengan badge topik.
+     - Tab 2: Tabel 32 mahasiswa terdaftar dengan status KRS aktif.
+     - Tab 3: Komponen Penilaian terverifikasi bobot 100%.
+  4. **Screenshot 4 — Tugas & Ujian (`pages/dosen/tugas/index.blade.php`)**:
+     - 2 kartu aksi cepat (*Buat Tugas* & *Buat Kuis / Ujian*).
+     - Tabel daftar 12 assessment dengan kolom No, Judul, Matkul, Kelas, Jenis, Jadwal, Status, dan dropdown aksi Kelola.
+     - Widget Ringkasan tiles (`Total = 12`, `Tugas = 7`, `Kuis/Ujian = 5`, `Menunggu Publikasi = 3`).
+     - Pure SVG Donut Chart responsif status publikasi: `Dipublikasikan 7 (58%)`, `Draft 2 (17%)`, `Terjadwal 1 (8%)`, `Arsip 2 (17%)`.
+  5. **Screenshot 5 — Penilaian (`pages/dosen/penilaian/index.blade.php` & `show.blade.php`)**:
+     - 4 Top Stat Cards: `Total Penilaian = 12`, `Menunggu Penilaian = 7`, `Sudah Dinilai = 5`, `Terlambat = 0`.
+     - Donut Chart Progress Penilaian menampilkan presisi `42% Selesai`.
+     - Workspace lembar kerja penilaian per mahasiswa: status keterlambatan, berkas submission, input nilai 0–100, feedback dosen, tombol simpan, dan tombol aksi cepat `Isi Nilai 0 Tanpa Submission`.
+     - Pengurangan dinamis badge sidebar secara seketika saat nilai disimpan.
+
+- **Kesiapan 4 Modul Batch 2 (Graceful Placeholders)**:
+  - Seluruh rute Batch 2 telah terhubung dengan middleware `auth` dan `role:dosen`, merender layout standar dosen dengan banner informatif:
+    - `/dosen/presensi` (`dosen.presensi.index`): Presensi Perkuliahan (QR code & absensi sesi).
+    - `/dosen/buku-nilai` (`dosen.buku-nilai.index`): Buku Nilai & Rekap Nilai Akhir OBE.
+    - `/dosen/diskusi` (`dosen.diskusi.index`): Forum Diskusi & Interaksi Mahasiswa.
+    - `/dosen/pengaturan` (`dosen.pengaturan.edit`): Pengaturan Akun & Preferensi Dosen.
+
+- **Hasil Pengujian Otomatis Menyeluruh**:
+  - `tests/Feature/LecturerBatch1EndToEndTest.php`: PASS (55 assertions).
+  - Total pengujian modul dosen: 44 tests passed (233 assertions).
+  - Total pengujian seluruh aplikasi (Mahasiswa + Dosen): **135 tests passed (781 assertions)** dengan **0 failures, 0 errors**.
+  - `vendor/bin/pint --test`: **PASS (100% PSR-12 compliant)**.
+
 
