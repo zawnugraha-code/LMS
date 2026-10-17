@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\NotificationHelper;
 use App\Models\Assignment;
 use App\Models\AttendanceLog;
 use App\Models\AttendanceSession;
 use App\Models\Meeting;
 use App\Models\Submission;
 use App\Models\XpLedger;
+use App\Notifications\SubmissionReceivedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,6 +41,9 @@ class AcademicActionController extends Controller
             $filePath = '/submissions/'.$user->identifier.'-submission.zip';
         }
 
+        $now = now();
+        $statusWaktu = ($assignment->due_at && $now->greaterThan($assignment->due_at)) ? 'terlambat' : 'tepat_waktu';
+
         $submission = Submission::updateOrCreate(
             [
                 'assignment_id' => $assignment->id,
@@ -48,11 +53,18 @@ class AcademicActionController extends Controller
                 'content' => $request->input('content') ?? '',
                 'file_path' => $filePath,
                 'status' => $status,
-                'submitted_at' => $isDraft ? null : now(),
+                'status_waktu' => $isDraft ? null : $statusWaktu,
+                'submitted_at' => $isDraft ? null : $now,
             ]
         );
 
         if (! $isDraft) {
+            // Notify lecturer about new submission
+            $lecturer = $assignment->academicClass?->lecturer;
+            if ($lecturer && NotificationHelper::shouldNotify($lecturer, 'submission_received')) {
+                $lecturer->notify(new SubmissionReceivedNotification($submission));
+            }
+
             // Award XP for submitting assignment if not already awarded
             $hasXp = XpLedger::where('user_id', $user->id)
                 ->where('source_type', 'assignment')

@@ -13,7 +13,7 @@ Dokumen ini mencatat keputusan arsitektural, skema tabel, komponen UI, route, da
 | **Fase 2** | Fondasi Data: Migration, Model, Policy, Seeder, Scheduler, Route Placeholder | **SELESAI** | Selesai pada 17 Okt 2026. 2 migration ran, 10 feature tests pass, 100% Pint. |
 | **Fase 3** | Layout Dosen (`layouts.dosen`) + Beranda + Kelas Saya (+ Detail Kelas) | **SELESAI** | Selesai pada 17 Okt 2026. Layout + Beranda + Kelas Saya + Detail Kelas + Policy Isolation + Tests 100% Pass. |
 | **Fase 4** | Modul Tugas & Ujian + Integrasi Tampil di Mahasiswa | **SELESAI** | Selesai pada 17 Okt 2026. CRUD, Donut SVG, Scheduler auto-publish, student policy & 8 feature tests pass. |
-| **Fase 5** | Modul Pengumpulan + Penilaian + Notifikasi + Badge Dinamis | Menunggu | - |
+| **Fase 5** | Modul Pengumpulan + Penilaian + Notifikasi + Badge Dinamis | **SELESAI** | Selesai pada 17 Okt 2026. Halaman Penilaian (Screenshot 5), Workspace Penilaian, bidirectional notifications, dynamic badge, 8 feature tests pass. |
 | **Fase 6** | Modul Materi Pembelajaran + Pengumuman Kelas & Akademik | Menunggu | - |
 | **Fase 7** | QA Akhir Batch 1: Testing, Cek N+1, Visual Freeze Verification | Menunggu | - |
 
@@ -171,9 +171,57 @@ Dokumen ini mencatat keputusan arsitektural, skema tabel, komponen UI, route, da
     6. `test_scheduled_assessment_auto_published_by_artisan_command`: Passed.
     7. `test_lecturer_can_archive_assessment`: Passed.
     8. `test_lecturer_cannot_update_another_lecturer_assessment`: Passed (403 isolasi antar-dosen).
-  - Total pengujian kumulatif Fase 2, 3, dan 4: 26 tests passed (128 assertions) dengan 0 kegagalan.
 - **Code Style**:
   - `vendor/bin/pint`: 100% PSR-12 compliant.
 
+---
 
+## 8. HASIL VERIFIKASI FASE 5
 
+- **Halaman Indeks Penilaian (`pages/dosen/penilaian/index.blade.php`)**:
+  - Tepat sesuai dengan tangkapan layar acuan (Screenshot 5).
+  - 4 Kartu Metrik Utama di Atas:
+    - `Total Penilaian = 12` (↑ 2 dari semester lalu)
+    - `Menunggu Penilaian = 7` (↑ 1 dari semester lalu)
+    - `Sudah Dinilai = 5` (↑ 2 dari semester lalu)
+    - `Terlambat = 0` (↑ 1 dari semester lalu)
+  - Filter Tabs: `Semua`, `Tugas`, `Kuis`, `UTS`, `UAS` serta filter Semester, Mata Kuliah, Kelas, dan Pencarian Judul/Kode.
+  - Tabel Penilaian Utama:
+    - Kolom: `No`, `Judul Assessment`, `Jenis` (badge pill warna), `Mata Kuliah`, `Kelas` (huruf inisial tebal), `Jumlah Mahasiswa`, `Deadline`, `Status` (badge `Menunggu`, `Sudah Dinilai`, `Draft`), dan tombol aksi kontekstual (`Lihat Detail`, `Mulai Menilai`, `Lihat Hasil`, `Kelola`).
+    - Paginasi numerik dan teks penghitung `Menampilkan 1-10 dari 12 assessment`.
+  - Widget Kanan 1: Ringkasan Penilaian 4 grid status (`Total: 12`, `Menunggu: 7`, `Sudah Dinilai: 5`, `Terlambat: 0`).
+  - Widget Kanan 2: Pure SVG Donut Chart Progress Penilaian menampilkan persentase presisi `42% Selesai` di tengah, cincin hijau (Sudah Dinilai) dan amber (Menunggu), serta legenda metrik detail.
+  - Widget Kanan 3: Kelas yang Diampu (IF2101 Kelas A & B, IF2103 Kelas A).
+  - Widget Kanan 4: Aksi Cepat (Rekap Nilai, Export Nilai, Kelola Rubrik, Pengaturan).
+  - Widget Kanan 5: Pengumuman Terkait Penilaian & Batas Waktu.
+
+- **Workspace Penilaian Detail (`pages/dosen/penilaian/show.blade.php`)**:
+  - Breadcrumb bertingkat dan tombol navigasi kembali ke daftar penilaian.
+  - Kartu header metadata: Judul assessment, jenis, status, mode, metode, tenggat deadline, skor maksimum (100), toleransi keterlambatan, dan deskripsi instruksi.
+  - 4 Mini Stat Cards: `Total Mahasiswa`, `Mengumpulkan`, `Sudah Dinilai`, dan progress bar persentase penyelesaian penilaian.
+  - Filter interaktif per status: `Semua`, `Mengumpulkan`, `Belum Kumpul`, `Perlu Dinilai`, `Sudah Dinilai`, serta live search box nama/NIM mahasiswa tanpa reload.
+  - Tombol Aksi Cepat `Isi Nilai 0 Tanpa Submission` yang dilengkapi konfirmasi pengamanan untuk memberi nilai 0 otomatis kepada mahasiswa yang tidak mengumpulkan tugas hingga deadline.
+  - Tabel Interaktif Mahasiswa:
+    - Kolom: `No`, `Mahasiswa` (nama, NIM, avatar inisial), `Status & Waktu` (badge `Tepat Waktu`, `Terlambat`, `Belum Mengumpulkan`), `Berkas & Jawaban` (link download berkas submission jika ada), `Nilai (0-100)` (input nomor), `Feedback / Catatan` (input teks umpan balik), dan tombol `Simpan`.
+    - Menyimpan nilai langsung memperbarui status submission menjadi `graded` dan mencatat skor serta catatan dosen.
+
+- **Interkoneksi Dua Arah & Dynamic Badge**:
+  - **Mahasiswa Mengumpulkan**: Mahasiswa submit via `assignments.submit` secara otomatis mengkalkulasi `status_waktu` (`tepat_waktu` atau `terlambat`) berdasarkan `due_at` tugas.
+  - **Notifikasi ke Dosen**: Ketika mahasiswa mengumpulkan, sistem mengirimkan `SubmissionReceivedNotification` ke dosen, sehingga badge penilaian di sidebar dan notifikasi dosen bertambah.
+  - **Dosen Menilai**: Ketika dosen memberi nilai pada submission, status berubah menjadi `graded`, dan sistem mengirimkan `SubmissionGradedNotification` ke mahasiswa yang bersangkutan.
+  - **Pengurangan Dinamis Badge Sidebar**: Badge merah pada menu sidebar dosen Penilaian secara deterministik menghitung `Submission::whereNull('score')->count()`. Ketika dosen selesai menilai submission, nilai badge berkurang secara otomatis dan akurat.
+
+- **Pengujian Otomatis (`tests/Feature/LecturerGradingTest.php`)**:
+  - 8 feature tests pass (41 assertions):
+    1. `test_lecturer_can_view_penilaian_index_with_canonical_stats`: Passed (Status 200, summary 12, 7, 5, 0, progress 42%).
+    2. `test_lecturer_can_filter_penilaian_by_jenis`: Passed.
+    3. `test_lecturer_can_view_assessment_grading_workspace`: Passed (Status 200, header, tabel mahasiswa & submission).
+    4. `test_lecturer_can_grade_submission_and_student_receives_notification`: Passed (Nilai tersimpan, notifikasi terkirim ke mahasiswa).
+    5. `test_lecturer_can_grade_student_without_prior_submission`: Passed.
+    6. `test_lecturer_can_quick_assign_zeros_to_unsubmitted_students`: Passed.
+    7. `test_lecturer_cannot_grade_another_lecturer_submission`: Passed (403 isolasi antar-dosen).
+    8. `test_student_submitting_assignment_calculates_status_waktu_and_notifies_lecturer`: Passed (`status_waktu` tepat waktu/terlambat + notifikasi dosen).
+  - Total pengujian kumulatif modul dosen: 34 tests passed (137 assertions) dengan 0 kegagalan.
+
+- **Code Style**:
+  - `vendor/bin/pint`: 100% PSR-12 compliant.

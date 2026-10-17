@@ -8,6 +8,7 @@
     $label = match ($normalized) {
         'tepat_waktu', 'tepat waktu' => 'Tepat Waktu',
         'terlambat' => 'Terlambat',
+        'belum_kumpul', 'belum mengumpulkan' => 'Belum Mengumpulkan',
         'dipublikasikan', 'published' => 'Dipublikasikan',
         'draft' => 'Draft',
         'terjadwal' => 'Terjadwal',
@@ -24,7 +25,7 @@
         'terlambat', 'menunggu', 'menunggu penilaian' => 'bg-amber-50 text-amber-700 border-amber-200',
         'dipublikasikan', 'published' => 'bg-blue-50 text-blue-700 border-blue-200',
         'terjadwal' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
-        'draft', 'selesai' => 'bg-slate-100 text-slate-700 border-slate-200',
+        'draft', 'selesai', 'belum_kumpul', 'belum mengumpulkan' => 'bg-slate-100 text-slate-700 border-slate-200',
         'arsip' => 'bg-zinc-100 text-zinc-600 border-zinc-200',
         default => 'bg-slate-100 text-slate-700 border-slate-200',
     };

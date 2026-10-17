@@ -56,7 +56,7 @@ class ArunikaAppTest extends TestCase
     public function test_instant_role_switcher_authenticates_correct_user(): void
     {
         $response = $this->get('/demo/login/lecturer');
-        $response->assertRedirect('/app');
+        $response->assertRedirect('/dosen');
 
         $this->assertAuthenticated();
         $this->assertEquals(UserRole::Lecturer, auth()->user()->role);

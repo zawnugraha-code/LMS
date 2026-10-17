@@ -11,6 +11,7 @@ use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\Dosen\DosenAssessmentController;
 use App\Http\Controllers\Dosen\DosenClassController;
 use App\Http\Controllers\Dosen\DosenDashboardController;
+use App\Http\Controllers\Dosen\DosenGradingController;
 use App\Http\Controllers\Dosen\DosenPlaceholderController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\MaterialController;
@@ -145,13 +146,11 @@ Route::prefix('dosen')->middleware(['auth', 'role.dosen'])->group(function () {
     Route::post('/tugas/{assignment}/archive', [DosenAssessmentController::class, 'archive'])->name('dosen.tugas.archive');
     Route::delete('/tugas/{assignment}', [DosenAssessmentController::class, 'destroy'])->name('dosen.tugas.destroy');
 
-    Route::get('/penilaian', function () {
-        return view('pages.dosen.placeholder', [
-            'menuTitle' => 'Penilaian',
-            'menuDescription' => 'Kelola dan nilai berkas pengumpulan tugas, kuis, dan ujian mahasiswa.',
-            'badgeBatch' => 'Fase 5',
-        ]);
-    })->name('dosen.penilaian.index');
+    Route::get('/penilaian', [DosenGradingController::class, 'index'])->name('dosen.penilaian.index');
+    Route::get('/penilaian/{assignment}', [DosenGradingController::class, 'show'])->name('dosen.penilaian.show');
+    Route::post('/penilaian/submission/{submission}/grade', [DosenGradingController::class, 'grade'])->name('dosen.penilaian.grade');
+    Route::post('/penilaian/{assignment}/student/{student}/grade', [DosenGradingController::class, 'gradeStudent'])->name('dosen.penilaian.grade_student');
+    Route::post('/penilaian/{assignment}/quick-zeros', [DosenGradingController::class, 'quickZeros'])->name('dosen.penilaian.quick_zeros');
 
     // 4 Menu Batch 2 Placeholders
     Route::get('/presensi', [DosenPlaceholderController::class, 'presensi'])->name('dosen.presensi.index');
