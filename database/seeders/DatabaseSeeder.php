@@ -39,6 +39,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->call(ProductionSeeder::class);
+            return;
+        }
+
         $password = Hash::make('password');
 
         // ==========================================
@@ -777,5 +782,15 @@ class DatabaseSeeder extends Seeder
         // 13. CANONICAL STUDENT PORTAL DATASET
         // ==========================================
         $this->call(CanonicalStudentSeeder::class);
+
+        // ==========================================
+        // 14. DOSEN BATCH 1 & 2 PORTAL DATASET
+        // ==========================================
+        $this->call(LecturerBatch1Seeder::class);
+
+        // ==========================================
+        // 15. ADMINISTRATOR & MANAGEMENT DATASET
+        // ==========================================
+        $this->call(DemoSeeder::class);
     }
 }

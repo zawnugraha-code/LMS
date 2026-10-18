@@ -106,6 +106,7 @@
         </div>
     </footer>
 
+    @if (!app()->isProduction() && Route::has('demo.login'))
     <!-- Developer Role Switcher (Toolbar Bawah, Ringkas, Tertutup Default) -->
     <div 
         x-data="{ open: false }" 
@@ -132,17 +133,9 @@
                     <span>Dosen</span>
                     <span class="text-text-muted text-[10px]">Prof. Budi</span>
                 </a>
-                <a href="{{ route('demo.login', 'campus_admin') }}" class="px-2.5 py-1.5 rounded-[6px] hover:bg-tile transition-colors flex items-center justify-between">
-                    <span>Admin BAAK</span>
-                    <span class="text-text-muted text-[10px]">Dr. Hendra</span>
-                </a>
-                <a href="{{ route('demo.login', 'auditor') }}" class="px-2.5 py-1.5 rounded-[6px] hover:bg-tile transition-colors flex items-center justify-between">
-                    <span>Auditor Mutu</span>
-                    <span class="text-text-muted text-[10px]">Ir. Siti Aminah</span>
-                </a>
-                <a href="{{ route('demo.login', 'industry_mentor') }}" class="px-2.5 py-1.5 rounded-[6px] hover:bg-tile transition-colors flex items-center justify-between">
-                    <span>Mentor Industri</span>
-                    <span class="text-text-muted text-[10px]">Rian Santoso</span>
+                <a href="{{ route('demo.login', 'admin') }}" class="px-2.5 py-1.5 rounded-[6px] hover:bg-tile transition-colors flex items-center justify-between">
+                    <span>Administrator</span>
+                    <span class="text-text-muted text-[10px]">Rina Kusumawati</span>
                 </a>
             </div>
         </div>
@@ -158,6 +151,7 @@
             <x-icon name="chevron-down" :size="12" class="text-text-muted" />
         </button>
     </div>
+    @endif
 
 </body>
 </html>

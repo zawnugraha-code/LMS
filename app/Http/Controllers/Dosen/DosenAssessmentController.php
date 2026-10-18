@@ -106,6 +106,9 @@ class DosenAssessmentController extends Controller
             'publish_at' => 'nullable|date',
         ]);
 
+        $class = AcademicClass::findOrFail($validated['class_id']);
+        Gate::authorize('manage', $class);
+
         $this->assessmentService->storeAssessment($user, $validated);
 
         return redirect()->route('dosen.tugas.index')

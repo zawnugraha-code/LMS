@@ -21,6 +21,26 @@ class AcademicActionController extends Controller
      */
     public function submitAssignment(Request $request, Assignment $assignment): RedirectResponse
     {
+        $user = Auth::user();
+        if (! $user) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        // Guard: Kelas selesai tidak menerima mutasi pengumpulan
+        if ($assignment->academicClass?->isFinished()) {
+            abort(403, 'Kelas ini telah selesai. Pengumpulan tugas ditutup.');
+        }
+
+        // Guard: Hanya mahasiswa aktif di kelas yang boleh mengumpulkan tugas
+        $isEnrolled = $assignment->academicClass?->enrollments()
+            ->where('user_id', $user->id)
+            ->whereIn('status', ['aktif', 'enrolled'])
+            ->exists();
+
+        if (! $isEnrolled) {
+            abort(403, 'Anda tidak terdaftar aktif dalam kelas untuk tugas ini.');
+        }
+
         $request->validate([
             'content' => 'nullable|string',
             'file_url' => 'nullable|string|max:255',
@@ -28,7 +48,6 @@ class AcademicActionController extends Controller
             'action' => 'nullable|string',
         ]);
 
-        $user = Auth::user();
         $isDraft = $request->input('action') === 'draft';
         $status = $isDraft ? 'draft' : 'submitted';
 

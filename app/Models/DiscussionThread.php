@@ -16,12 +16,14 @@ class DiscussionThread extends Model
         'ulid',
         'class_id',
         'category_id',
+        'kategori',
         'user_id',
         'title',
         'content',
         'attachment_path',
         'is_pinned',
         'is_locked',
+        'is_private',
         'views_count',
         'upvotes_count',
     ];
@@ -29,9 +31,38 @@ class DiscussionThread extends Model
     protected $casts = [
         'is_pinned' => 'boolean',
         'is_locked' => 'boolean',
+        'is_private' => 'boolean',
         'views_count' => 'integer',
         'upvotes_count' => 'integer',
     ];
+
+    public function reads(): HasMany
+    {
+        return $this->hasMany(DiscussionRead::class, 'thread_id');
+    }
+
+    public function favorites(): HasMany
+    {
+        return $this->hasMany(DiscussionFavorite::class, 'thread_id');
+    }
+
+    public function isReadBy(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        return $this->reads()->where('user_id', $user->id)->exists();
+    }
+
+    public function isFavoritedBy(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        return $this->favorites()->where('user_id', $user->id)->exists();
+    }
 
     public function academicClass(): BelongsTo
     {

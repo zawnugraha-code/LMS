@@ -151,19 +151,22 @@ class LecturerBatch1EndToEndTest extends TestCase
                 && $summary['draft'] === 1;
         });
 
-        // 7. Verify All 4 Batch 2 Placeholders Are Accessible with 200 OK
-        $placeholders = [
-            'presensi' => route('dosen.presensi.index'),
-            'buku-nilai' => route('dosen.buku-nilai.index'),
-            'diskusi' => route('dosen.diskusi.index'),
-            'pengaturan' => route('dosen.pengaturan.edit'),
-        ];
+        // 7. Verify All Batch 2 Modules (Presensi, Buku Nilai, Diskusi, Pengaturan) are Live
+        $presensiRes = $this->actingAs($dosen)->get(route('dosen.presensi.index'));
+        $presensiRes->assertStatus(200);
+        $presensiRes->assertSee('Presensi');
 
-        foreach ($placeholders as $name => $url) {
-            $pRes = $this->actingAs($dosen)->get($url);
-            $pRes->assertStatus(200);
-            $pRes->assertSee('Halaman ini sedang disiapkan');
-            $pRes->assertSee('Batch 2');
-        }
+        $bukuNilaiRes = $this->actingAs($dosen)->get(route('dosen.buku-nilai.index'));
+        $bukuNilaiRes->assertStatus(200);
+        $bukuNilaiRes->assertSee('Buku Nilai');
+
+        $diskusiRes = $this->actingAs($dosen)->get(route('dosen.diskusi.index'));
+        $diskusiRes->assertStatus(200);
+        $diskusiRes->assertSee('Diskusi');
+
+        $pengaturanRes = $this->actingAs($dosen)->get(route('dosen.pengaturan.edit'));
+        $pengaturanRes->assertStatus(200);
+        $pengaturanRes->assertSee('Pengaturan');
+        $pengaturanRes->assertDontSee('Halaman ini sedang disiapkan');
     }
 }

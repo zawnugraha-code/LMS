@@ -63,4 +63,9 @@ class Meeting extends Model
     {
         return $this->hasOne(AttendanceSession::class);
     }
+
+    public function presensi(): HasMany
+    {
+        return $this->hasMany(Presensi::class, 'pertemuan_id');
+    }
 }

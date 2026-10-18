@@ -13,18 +13,23 @@ class AssignmentPolicy
      */
     public function view(User $user, Assignment $assignment): bool
     {
-        if (in_array($user->role, [UserRole::SuperAdmin, UserRole::CampusAdmin, UserRole::Auditor])) {
+        if (in_array($user->role, [UserRole::Admin, UserRole::SuperAdmin, UserRole::CampusAdmin, UserRole::Auditor], true)) {
             return true;
         }
 
-        // Lecturer can view if they own the assignment or teach the class
+        // Lecturer can view if they teach the class
         if ($user->role === UserRole::Lecturer) {
-            return $assignment->dosen_id === $user->id || $assignment->academicClass?->lecturer_id === $user->id;
+            $lecturerId = $assignment->academicClass?->lecturer_id ?? $assignment->dosen_id;
+            return $lecturerId === $user->id;
         }
 
         // Student can view if enrolled in the class and assignment is published
         if ($user->role === UserRole::Student) {
-            $isEnrolled = $assignment->academicClass?->enrollments()->where('user_id', $user->id)->exists();
+            $isEnrolled = $assignment->academicClass?->enrollments()
+                ->where('user_id', $user->id)
+                ->whereIn('status', ['aktif', 'enrolled'])
+                ->exists();
+
             if (! $isEnrolled) {
                 return false;
             }
@@ -50,7 +55,7 @@ class AssignmentPolicy
      */
     public function create(User $user): bool
     {
-        return in_array($user->role, [UserRole::SuperAdmin, UserRole::CampusAdmin, UserRole::Lecturer]);
+        return in_array($user->role, [UserRole::Admin, UserRole::SuperAdmin, UserRole::CampusAdmin, UserRole::Lecturer], true);
     }
 
     /**
@@ -58,12 +63,20 @@ class AssignmentPolicy
      */
     public function update(User $user, Assignment $assignment): bool
     {
-        if (in_array($user->role, [UserRole::SuperAdmin, UserRole::CampusAdmin])) {
+        if (in_array($user->role, [UserRole::Admin, UserRole::SuperAdmin, UserRole::CampusAdmin], true)) {
             return true;
         }
 
-        return $user->role === UserRole::Lecturer &&
-            ($assignment->dosen_id === $user->id || $assignment->academicClass?->lecturer_id === $user->id);
+        if ($assignment->academicClass?->isFinished()) {
+            return false;
+        }
+
+        if ($user->role === UserRole::Lecturer) {
+            $lecturerId = $assignment->academicClass?->lecturer_id ?? $assignment->dosen_id;
+            return $lecturerId === $user->id;
+        }
+
+        return false;
     }
 
     /**
@@ -71,11 +84,19 @@ class AssignmentPolicy
      */
     public function delete(User $user, Assignment $assignment): bool
     {
-        if (in_array($user->role, [UserRole::SuperAdmin, UserRole::CampusAdmin])) {
+        if (in_array($user->role, [UserRole::Admin, UserRole::SuperAdmin, UserRole::CampusAdmin], true)) {
             return true;
         }
 
-        return $user->role === UserRole::Lecturer &&
-            ($assignment->dosen_id === $user->id || $assignment->academicClass?->lecturer_id === $user->id);
+        if ($assignment->academicClass?->isFinished()) {
+            return false;
+        }
+
+        if ($user->role === UserRole::Lecturer) {
+            $lecturerId = $assignment->academicClass?->lecturer_id ?? $assignment->dosen_id;
+            return $lecturerId === $user->id;
+        }
+
+        return false;
     }
 }

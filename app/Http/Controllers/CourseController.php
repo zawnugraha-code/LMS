@@ -66,9 +66,7 @@ class CourseController extends Controller
         }
 
         // Authorize view via Policy
-        if (Gate::has('view') && ! Gate::allows('view', $class)) {
-            abort(403, 'Anda tidak memiliki hak akses untuk melihat mata kuliah ini.');
-        }
+        Gate::authorize('view', $class);
 
         $class->load([
             'course.cpmks.subCpmks',
@@ -106,9 +104,7 @@ class CourseController extends Controller
             abort(403, 'Mata kuliah ini belum dimulai atau masih berstatus Akan Datang.');
         }
 
-        if (Gate::has('enterClassroom') && ! Gate::allows('enterClassroom', $class)) {
-            abort(403, 'Anda tidak terdaftar dalam kelas ini atau kelas belum aktif.');
-        }
+        Gate::authorize('enterClassroom', $class);
 
         $class->load([
             'course.cpmks',

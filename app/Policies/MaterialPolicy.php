@@ -13,7 +13,7 @@ class MaterialPolicy
      */
     public function view(User $user, Material $material): bool
     {
-        if (in_array($user->role, [UserRole::SuperAdmin, UserRole::CampusAdmin, UserRole::Auditor])) {
+        if (in_array($user->role, [UserRole::Admin, UserRole::SuperAdmin, UserRole::CampusAdmin, UserRole::Auditor], true)) {
             return true;
         }
 
@@ -40,11 +40,15 @@ class MaterialPolicy
      */
     public function manage(User $user, Material $material): bool
     {
-        if (in_array($user->role, [UserRole::SuperAdmin, UserRole::CampusAdmin])) {
+        if (in_array($user->role, [UserRole::Admin, UserRole::SuperAdmin, UserRole::CampusAdmin], true)) {
             return true;
         }
 
         $class = $material->academicClass ?? $material->meeting?->academicClass;
+
+        if ($class?->isFinished()) {
+            return false;
+        }
 
         return $user->role === UserRole::Lecturer &&
             ($class?->lecturer_id === $user->id || $material->uploaded_by === $user->id);

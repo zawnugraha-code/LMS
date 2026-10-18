@@ -1,4 +1,5 @@
 *.log
+*.sql
 .DS_Store
 .env
 .env.backup
@@ -18,6 +19,10 @@
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/app/imports
+/storage/app/exports
+/storage/app/private/imports
+/storage/app/private/exports
 /vendor
 Homestead.json
 Homestead.yaml

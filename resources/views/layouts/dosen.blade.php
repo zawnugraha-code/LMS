@@ -260,15 +260,17 @@
                 <!-- Right: Search Input + Notifikasi + User Profile -->
                 <div class="flex items-center gap-3">
                     
-                    <!-- Search Input -->
-                    <div class="relative hidden sm:block w-72 md:w-80">
+                    <!-- Search Input (Connected to Discussion Forum Search) -->
+                    <form action="{{ route('dosen.diskusi.index') }}" method="GET" class="relative hidden sm:block w-72 md:w-80">
                         <x-icon name="search" :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none" />
                         <input 
                             type="text" 
-                            placeholder="Cari materi, tugas, atau mata kuliah..." 
+                            name="search"
+                            value="{{ request('search') }}"
+                            placeholder="Cari topik diskusi, materi, atau tugas..." 
                             class="w-full pl-8 pr-3 py-1.5 text-xs rounded-[6px] border border-line bg-canvas/60 text-text placeholder:text-text-muted focus:outline-none focus:border-[#2563EB] focus:bg-surface transition-colors"
                         >
-                    </div>
+                    </form>
 
                     <!-- Notifikasi Lonceng -->
                     <div class="relative" x-data="{ open: false }">

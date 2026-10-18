@@ -7,38 +7,40 @@
 <div class="space-y-6">
 
     <!-- Welcome Banner with Campus Image -->
-    <div class="bg-surface border border-line rounded-[10px] p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-2xs">
-        <div class="min-w-0 flex-1">
-            <h1 class="text-2xl font-bold text-text tracking-tight mb-1">
-                Selamat datang, {{ $user->name ?? 'Dr. Budi Rahardjo' }}
-            </h1>
-            <p class="text-xs text-text-muted mb-4">
-                Berikut ringkasan aktivitas mengajar Anda pada semester ini.
-            </p>
+    <div class="bg-surface border border-line rounded-[10px] p-5 sm:p-6 shadow-2xs">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="flex-1 min-w-0 pr-0 md:pr-4">
+                <h1 class="text-xl sm:text-2xl font-bold text-text tracking-tight mb-1.5 leading-snug">
+                    Selamat datang, {{ $user->name ?? 'Dr. Budi Rahardjo' }}
+                </h1>
+                <p class="text-xs sm:text-[13px] text-text-muted mb-4 leading-relaxed">
+                    Berikut ringkasan aktivitas mengajar Anda pada semester ini.
+                </p>
 
-            <div class="flex items-center gap-2.5 flex-wrap text-xs">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-line text-text-muted">
-                    <x-icon name="graduation-cap" :size="14" class="text-navy-700" />
-                    <span>{{ $user->department ?? 'S1 Teknik Informatika' }}</span>
-                </span>
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-line text-text-muted">
-                    <x-icon name="calendar" :size="14" class="text-navy-700" />
-                    <span>{{ $term->name ?? 'Semester Ganjil 2026/2027' }}</span>
-                </span>
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-line text-text-muted">
-                    <x-icon name="clock" :size="14" class="text-navy-700" />
-                    <span>{{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }}</span>
-                </span>
+                <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap text-xs">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-line text-text-muted font-medium">
+                        <x-icon name="graduation-cap" :size="14" class="text-navy-700" />
+                        <span>{{ $user->department ?? 'S1 Teknik Informatika' }}</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-line text-text-muted font-medium">
+                        <x-icon name="calendar" :size="14" class="text-navy-700" />
+                        <span>{{ $term->name ?? 'Semester Ganjil 2026/2027' }}</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-line text-text-muted font-medium">
+                        <x-icon name="clock" :size="14" class="text-navy-700" />
+                        <span>{{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }}</span>
+                    </span>
+                </div>
             </div>
-        </div>
 
-        <div class="shrink-0 w-full md:w-80 h-36 rounded-[8px] overflow-hidden border border-line shadow-2xs relative">
-            <img 
-                src="/images/campus-hero.jpg" 
-                alt="Kampus Universitas Nusantara Indonesia" 
-                class="w-full h-full object-cover"
-                onerror="this.onerror=null;this.src='/images/campus-hero.png';"
-            >
+            <div class="w-full md:w-[320px] lg:w-[360px] h-32 sm:h-36 shrink-0 rounded-[8px] overflow-hidden border border-line shadow-2xs relative">
+                <img 
+                    src="/images/campus-hero.jpg" 
+                    alt="Kampus Universitas Nusantara Indonesia" 
+                    class="w-full h-full object-cover"
+                    onerror="this.onerror=null;this.src='/images/campus-hero.png';"
+                >
+            </div>
         </div>
     </div>
 

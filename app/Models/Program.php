@@ -31,6 +31,11 @@ class Program extends Model
         return $this->hasMany(Curriculum::class);
     }
 
+    public function curriculums(): HasMany
+    {
+        return $this->curricula();
+    }
+
     public function cpls(): HasMany
     {
         return $this->hasMany(Cpl::class);

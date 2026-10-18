@@ -93,8 +93,10 @@ class Assignment extends Model
     public function scopeForDosen($query, int $dosenId)
     {
         return $query->where(function ($q) use ($dosenId) {
-            $q->where('dosen_id', $dosenId)
-                ->orWhereHas('academicClass', fn ($cq) => $cq->where('lecturer_id', $dosenId));
+            $q->whereHas('academicClass', fn ($cq) => $cq->where('lecturer_id', $dosenId))
+                ->orWhere(function ($sub) use ($dosenId) {
+                    $sub->whereNull('class_id')->where('dosen_id', $dosenId);
+                });
         });
     }
 }

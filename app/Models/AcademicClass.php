@@ -57,10 +57,23 @@ class AcademicClass extends Model
         return $this->hasMany(Enrollment::class, 'class_id');
     }
 
+    public function activeEnrollments(): HasMany
+    {
+        return $this->enrollments()->whereIn('status', ['aktif', 'enrolled']);
+    }
+
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'enrollments', 'class_id', 'user_id')
-            ->withPivot(['status', 'final_score', 'letter_grade'])
+            ->withPivot(['status', 'final_score', 'letter_grade', 'dikeluarkan_at', 'dikeluarkan_oleh'])
+            ->withTimestamps();
+    }
+
+    public function activeStudents(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'enrollments', 'class_id', 'user_id')
+            ->wherePivotIn('status', ['aktif', 'enrolled'])
+            ->withPivot(['status', 'final_score', 'letter_grade', 'dikeluarkan_at', 'dikeluarkan_oleh'])
             ->withTimestamps();
     }
 
@@ -84,6 +97,16 @@ class AcademicClass extends Model
         return $this->hasMany(CourseAssessmentComponent::class, 'class_id');
     }
 
+    public function materials(): HasMany
+    {
+        return $this->hasMany(Material::class, 'class_id');
+    }
+
+    public function discussionThreads(): HasMany
+    {
+        return $this->hasMany(DiscussionThread::class, 'class_id');
+    }
+
     public function announcements(): HasMany
     {
         return $this->hasMany(Announcement::class, 'class_id');
@@ -97,5 +120,32 @@ class AcademicClass extends Model
     public function isLocked(): bool
     {
         return (bool) ($this->settings['is_locked'] ?? false);
+    }
+
+    public function isFinished(): bool
+    {
+        return $this->status === 'selesai' || ($this->term && $this->term->status === 'selesai');
+    }
+
+    public function isFull(): bool
+    {
+        if ($this->capacity <= 0) {
+            return false;
+        }
+
+        $count = $this->relationLoaded('activeEnrollments')
+            ? $this->activeEnrollments->count()
+            : $this->activeEnrollments()->count();
+
+        return $count >= $this->capacity;
+    }
+
+    public function remainingCapacity(): int
+    {
+        $count = $this->relationLoaded('activeEnrollments')
+            ? $this->activeEnrollments->count()
+            : $this->activeEnrollments()->count();
+
+        return max(0, (int) $this->capacity - $count);
     }
 }

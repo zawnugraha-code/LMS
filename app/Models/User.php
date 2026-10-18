@@ -41,6 +41,9 @@ class User extends Authenticatable
         'timezone',
         'settings',
         'is_active',
+        'must_change_password',
+        'last_login_at',
+        'password_changed_at',
     ];
 
     /**
@@ -66,12 +69,20 @@ class User extends Authenticatable
             'role' => UserRole::class,
             'settings' => 'array',
             'is_active' => 'boolean',
+            'must_change_password' => 'boolean',
+            'last_login_at' => 'datetime',
+            'password_changed_at' => 'datetime',
         ];
     }
 
     /**
      * Role checking helpers
      */
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, [UserRole::Admin, UserRole::SuperAdmin, UserRole::CampusAdmin], true);
+    }
+
     public function isSuperAdmin(): bool
     {
         return $this->role === UserRole::SuperAdmin;
@@ -161,6 +172,11 @@ class User extends Authenticatable
         return $this->hasMany(SupportTicket::class);
     }
 
+    public function presensis(): HasMany
+    {
+        return $this->hasMany(Presensi::class, 'mahasiswa_id');
+    }
+
     public function classesTaught(): HasMany
     {
         return $this->hasMany(AcademicClass::class, 'lecturer_id');
@@ -174,6 +190,11 @@ class User extends Authenticatable
     public function announcements(): HasMany
     {
         return $this->hasMany(Announcement::class, 'author_id');
+    }
+
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
     }
 
     public function totalXp(): int

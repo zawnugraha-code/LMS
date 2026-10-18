@@ -4,6 +4,7 @@ namespace App\Enums;
 
 enum UserRole: string
 {
+    case Admin = 'admin';
     case SuperAdmin = 'super_admin';
     case CampusAdmin = 'campus_admin';
     case Lecturer = 'lecturer';
@@ -18,6 +19,7 @@ enum UserRole: string
     public function label(): string
     {
         return match ($this) {
+            self::Admin => 'Administrator',
             self::SuperAdmin => 'Super Admin (System)',
             self::CampusAdmin => 'Admin Kampus / BAAK',
             self::Lecturer => 'Dosen Pengampu',
@@ -34,6 +36,7 @@ enum UserRole: string
     public function badgeColor(): string
     {
         return match ($this) {
+            self::Admin => 'indigo',
             self::SuperAdmin => 'purple',
             self::CampusAdmin => 'indigo',
             self::Lecturer => 'blue',
@@ -50,6 +53,7 @@ enum UserRole: string
     public function description(): string
     {
         return match ($this) {
+            self::Admin => 'Kelola semester, mata kuliah, kelas, akun pengguna, dan pendaftaran peserta kelas',
             self::SuperAdmin => 'Akses penuh ke konfigurasi multi-kampus dan sistem global',
             self::CampusAdmin => 'Kelola kurikulum, kelas, data dosen, mahasiswa, dan sinkronisasi SIAKAD',
             self::Lecturer => 'Kelola RPS, materi, tugas, kuis, nilai OBE, dan interaksi kelas',
@@ -66,6 +70,7 @@ enum UserRole: string
     public function defaultRoute(): string
     {
         return match ($this) {
+            self::Admin => 'admin.dashboard',
             self::SuperAdmin => 'admin.dashboard',
             self::CampusAdmin => 'campus.dashboard',
             self::Lecturer => 'lecturer.dashboard',

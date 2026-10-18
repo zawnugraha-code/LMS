@@ -26,7 +26,7 @@ class AssignmentService
 
         return AcademicClass::with(['course', 'lecturer', 'term'])
             ->where('term_id', $term->id)
-            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $student->id))
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $student->id)->whereIn('status', ['aktif', 'enrolled', 'completed']))
             ->get();
     }
 

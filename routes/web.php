@@ -1,6 +1,13 @@
 <?php
 
 use App\Http\Controllers\AcademicActionController;
+use App\Http\Controllers\Admin\AdminClassController;
+use App\Http\Controllers\Admin\AdminCourseController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminEnrollmentController;
+use App\Http\Controllers\Admin\AdminPlaceholderController;
+use App\Http\Controllers\Admin\AdminSearchController;
+use App\Http\Controllers\Admin\AdminSemesterController;
 use App\Http\Controllers\AiCopilotController;
 use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AttendanceController;
@@ -11,9 +18,12 @@ use App\Http\Controllers\DiscussionController;
 use App\Http\Controllers\Dosen\DosenAssessmentController;
 use App\Http\Controllers\Dosen\DosenClassController;
 use App\Http\Controllers\Dosen\DosenDashboardController;
+use App\Http\Controllers\Dosen\DosenDiscussionController;
+use App\Http\Controllers\Dosen\DosenGradeController;
 use App\Http\Controllers\Dosen\DosenGradingController;
 use App\Http\Controllers\Dosen\DosenMaterialController;
-use App\Http\Controllers\Dosen\DosenPlaceholderController;
+use App\Http\Controllers\Dosen\DosenPresensiController;
+use App\Http\Controllers\Dosen\DosenSettingController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\NotificationController;
@@ -55,7 +65,11 @@ Route::post('/demo/request', [DemoAuthController::class, 'storeDemoRequest'])->n
 Route::get('/login', function () {
     return redirect()->route('marketing.home');
 })->name('login');
-Route::get('/demo/login/{role}', [DemoAuthController::class, 'switchRole'])->name('demo.login');
+
+if (! app()->environment('production') && (app()->environment('local', 'testing') || config('arunika.demo_role_switcher_enabled', false))) {
+    Route::get('/demo/login/{role}', [DemoAuthController::class, 'switchRole'])->name('demo.login');
+}
+
 Route::post('/logout', [DemoAuthController::class, 'logout'])->name('logout');
 
 // 4. Arunika LMS Application Dashboard & Pages
@@ -154,9 +168,82 @@ Route::prefix('dosen')->middleware(['auth', 'role.dosen'])->group(function () {
     Route::post('/penilaian/{assignment}/student/{student}/grade', [DosenGradingController::class, 'gradeStudent'])->name('dosen.penilaian.grade_student');
     Route::post('/penilaian/{assignment}/quick-zeros', [DosenGradingController::class, 'quickZeros'])->name('dosen.penilaian.quick_zeros');
 
-    // 4 Menu Batch 2 Placeholders
-    Route::get('/presensi', [DosenPlaceholderController::class, 'presensi'])->name('dosen.presensi.index');
-    Route::get('/buku-nilai', [DosenPlaceholderController::class, 'bukuNilai'])->name('dosen.buku-nilai.index');
-    Route::get('/diskusi', [DosenPlaceholderController::class, 'diskusi'])->name('dosen.diskusi.index');
-    Route::get('/pengaturan', [DosenPlaceholderController::class, 'pengaturan'])->name('dosen.pengaturan.edit');
+    // 6. Modul Presensi Perkuliahan (Batch 2)
+    Route::get('/presensi', [DosenPresensiController::class, 'index'])->name('dosen.presensi.index');
+    Route::get('/presensi/input', [DosenPresensiController::class, 'input'])->name('dosen.presensi.input');
+    Route::post('/presensi', [DosenPresensiController::class, 'store'])->name('dosen.presensi.store');
+    Route::get('/presensi/{class}', [DosenPresensiController::class, 'show'])->name('dosen.presensi.show');
+    Route::get('/presensi/{class}/export', [DosenPresensiController::class, 'export'])->name('dosen.presensi.export');
+
+    // 7. Modul Buku Nilai (Batch 2)
+    Route::get('/buku-nilai', [DosenGradeController::class, 'index'])->name('dosen.buku-nilai.index');
+    Route::get('/buku-nilai/{class}', [DosenGradeController::class, 'show'])->name('dosen.buku-nilai.show');
+    Route::post('/buku-nilai/{class}/komponen', [DosenGradeController::class, 'updateComponents'])->name('dosen.buku-nilai.components.update');
+    Route::get('/buku-nilai/{class}/export', [DosenGradeController::class, 'export'])->name('dosen.buku-nilai.export');
+
+    // 8. Modul Forum Diskusi (Batch 2)
+    Route::get('/diskusi', [DosenDiscussionController::class, 'index'])->name('dosen.diskusi.index');
+    Route::get('/diskusi/thread/{thread}', [DosenDiscussionController::class, 'show'])->name('dosen.diskusi.show');
+    Route::post('/diskusi/{class}', [DosenDiscussionController::class, 'store'])->name('dosen.diskusi.store');
+    Route::post('/diskusi/thread/{thread}/reply', [DosenDiscussionController::class, 'reply'])->name('dosen.diskusi.reply');
+    Route::post('/diskusi/thread/{thread}/toggle-lock', [DosenDiscussionController::class, 'toggleLock'])->name('dosen.diskusi.toggle_lock');
+    Route::post('/diskusi/thread/{thread}/toggle-pin', [DosenDiscussionController::class, 'togglePin'])->name('dosen.diskusi.toggle_pin');
+    Route::post('/diskusi/thread/{thread}/favorite', [DosenDiscussionController::class, 'toggleFavorite'])->name('dosen.diskusi.favorite');
+
+    // 9. Modul Pengaturan Akun & Preferensi (Batch 2)
+    Route::get('/pengaturan', [DosenSettingController::class, 'edit'])->name('dosen.pengaturan.edit');
+    Route::post('/pengaturan/profile', [DosenSettingController::class, 'updateProfile'])->name('dosen.pengaturan.profile');
+    Route::post('/pengaturan/password', [DosenSettingController::class, 'updatePassword'])->name('dosen.pengaturan.password');
+    Route::post('/pengaturan/notifications', [DosenSettingController::class, 'updateNotifications'])->name('dosen.pengaturan.notifications');
+    Route::post('/pengaturan/support-ticket', [DosenSettingController::class, 'submitTicket'])->name('dosen.pengaturan.support_ticket');
+});
+
+// 10. Administrator Panel Routes (Batch 1 & Batch 2 Placeholders)
+Route::middleware(['web', 'auth', 'role.admin'])->prefix('admin')->group(function () {
+    // Beranda
+    Route::get('/beranda', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+
+    // Semester
+    Route::get('/semester', [AdminSemesterController::class, 'index'])->name('admin.semester.index');
+    Route::post('/semester', [AdminSemesterController::class, 'store'])->name('admin.semester.store');
+    Route::put('/semester/{term}', [AdminSemesterController::class, 'update'])->name('admin.semester.update');
+    Route::post('/semester/{term}/aktifkan', [AdminSemesterController::class, 'activate'])->name('admin.semester.activate');
+    Route::post('/semester/{term}/tutup', [AdminSemesterController::class, 'close'])->name('admin.semester.close');
+    Route::delete('/semester/{term}', [AdminSemesterController::class, 'destroy'])->name('admin.semester.destroy');
+
+    // Mata Kuliah
+    Route::get('/mata-kuliah', [AdminCourseController::class, 'index'])->name('admin.mata-kuliah.index');
+    Route::post('/mata-kuliah', [AdminCourseController::class, 'store'])->name('admin.mata-kuliah.store');
+    Route::put('/mata-kuliah/{course}', [AdminCourseController::class, 'update'])->name('admin.mata-kuliah.update');
+    Route::delete('/mata-kuliah/{course}', [AdminCourseController::class, 'destroy'])->name('admin.mata-kuliah.destroy');
+
+    // Kelas Perkuliahan (Fase A4)
+    Route::get('/kelas', [AdminClassController::class, 'index'])->name('admin.kelas.index');
+    Route::get('/kelas/buat', [AdminClassController::class, 'create'])->name('admin.kelas.create');
+    Route::post('/kelas', [AdminClassController::class, 'store'])->name('admin.kelas.store');
+    Route::post('/kelas/cek-bentrok', [AdminClassController::class, 'checkConflict'])->name('admin.kelas.check-conflict');
+    Route::get('/kelas/{class}', [AdminClassController::class, 'show'])->name('admin.kelas.show');
+    Route::get('/kelas/{class}/edit', [AdminClassController::class, 'edit'])->name('admin.kelas.edit');
+    Route::put('/kelas/{class}', [AdminClassController::class, 'update'])->name('admin.kelas.update');
+    Route::post('/kelas/{class}/selesaikan', [AdminClassController::class, 'finish'])->name('admin.kelas.finish');
+    Route::delete('/kelas/{class}', [AdminClassController::class, 'destroy'])->name('admin.kelas.destroy');
+    Route::put('/kelas/{class}/pertemuan/{meeting}', [AdminClassController::class, 'updateMeeting'])->name('admin.kelas.meeting.update');
+
+    // Pendaftaran Mahasiswa (Enrollment) - Fase A5
+    Route::get('/pendaftaran-mahasiswa', [AdminEnrollmentController::class, 'index'])->name('admin.pendaftaran-mahasiswa.index');
+    Route::get('/pendaftaran-mahasiswa/template', [AdminEnrollmentController::class, 'downloadTemplate'])->name('admin.pendaftaran-mahasiswa.template');
+    Route::post('/pendaftaran-mahasiswa/{class}', [AdminEnrollmentController::class, 'store'])->name('admin.pendaftaran-mahasiswa.store');
+    Route::post('/pendaftaran-mahasiswa/{class}/bulk', [AdminEnrollmentController::class, 'bulkStore'])->name('admin.pendaftaran-mahasiswa.bulk-store');
+    Route::delete('/pendaftaran-mahasiswa/{class}/keluarkan/{user}', [AdminEnrollmentController::class, 'destroy'])->name('admin.pendaftaran-mahasiswa.destroy');
+    Route::get('/pendaftaran-mahasiswa/{class}/export', [AdminEnrollmentController::class, 'export'])->name('admin.pendaftaran-mahasiswa.export');
+    Route::post('/pendaftaran-mahasiswa/{class}/import', [AdminEnrollmentController::class, 'import'])->name('admin.pendaftaran-mahasiswa.import');
+
+    // Pencarian Global (Topbar) - Fase A5
+    Route::get('/cari', [AdminSearchController::class, 'search'])->name('admin.cari');
+
+    // Batch 2 Modules (Placeholders)
+    Route::get('/pengguna/dosen', [AdminPlaceholderController::class, 'dosen'])->name('admin.pengguna.dosen.index');
+    Route::get('/pengguna/mahasiswa', [AdminPlaceholderController::class, 'mahasiswa'])->name('admin.pengguna.mahasiswa.index');
+    Route::get('/log-aktivitas', [AdminPlaceholderController::class, 'logAktivitas'])->name('admin.log-aktivitas.index');
+    Route::get('/pengaturan', [AdminPlaceholderController::class, 'pengaturan'])->name('admin.pengaturan.edit');
 });

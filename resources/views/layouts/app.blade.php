@@ -599,6 +599,7 @@
         </div>
     </div>
 
+    @if (!app()->isProduction() && Route::has('demo.login'))
     <!-- Developer Role Switcher (Toolbar Bawah, Ringkas, Non-Intrusif) -->
     <div 
         x-data="{ open: false }" 
@@ -624,17 +625,9 @@
                     <span>Dosen</span>
                     <span class="text-text-muted text-[10px]">Prof. Budi</span>
                 </a>
-                <a href="{{ route('demo.login', 'campus_admin') }}" class="px-2.5 py-1.5 rounded-[6px] hover:bg-tile transition-colors flex items-center justify-between {{ Auth::user()?->isCampusAdmin() ? 'font-semibold text-primary bg-tile' : 'text-text-muted' }}">
-                    <span>Admin BAAK</span>
-                    <span class="text-text-muted text-[10px]">Dr. Hendra</span>
-                </a>
-                <a href="{{ route('demo.login', 'auditor') }}" class="px-2.5 py-1.5 rounded-[6px] hover:bg-tile transition-colors flex items-center justify-between {{ Auth::user()?->isAuditor() ? 'font-semibold text-primary bg-tile' : 'text-text-muted' }}">
-                    <span>Auditor Mutu</span>
-                    <span class="text-text-muted text-[10px]">Ir. Siti Aminah</span>
-                </a>
-                <a href="{{ route('demo.login', 'industry_mentor') }}" class="px-2.5 py-1.5 rounded-[6px] hover:bg-tile transition-colors flex items-center justify-between {{ Auth::user()?->isIndustryMentor() ? 'font-semibold text-primary bg-tile' : 'text-text-muted' }}">
-                    <span>Mentor Industri</span>
-                    <span class="text-text-muted text-[10px]">Rian Santoso</span>
+                <a href="{{ route('demo.login', 'admin') }}" class="px-2.5 py-1.5 rounded-[6px] hover:bg-tile transition-colors flex items-center justify-between {{ Auth::user()?->isAdmin() ? 'font-semibold text-primary bg-tile' : 'text-text-muted' }}">
+                    <span>Administrator</span>
+                    <span class="text-text-muted text-[10px]">Rina Kusumawati</span>
                 </a>
             </div>
         </div>
@@ -649,6 +642,7 @@
             <x-icon name="chevron-down" :size="12" class="text-text-muted" />
         </button>
     </div>
+    @endif
 
     <!-- ==========================================
          GLOBAL SEARCH MODAL (Ctrl+K)

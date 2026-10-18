@@ -16,21 +16,31 @@ class DemoAuthController extends Controller
      */
     public function switchRole(string $role): RedirectResponse
     {
+        abort_if(app()->isProduction(), 404);
+
+        $allowedRoles = ['admin', 'lecturer', 'student'];
+        abort_unless(in_array($role, $allowedRoles, true), 404);
+
         $roleEnum = UserRole::tryFrom($role);
 
         if (! $roleEnum) {
-            return redirect()->back()->with('error', 'Role tidak valid.');
+            abort(404);
         }
 
-        $user = ($roleEnum === UserRole::Lecturer)
-            ? (User::where('email', 'dosen@arunika.test')->first() ?? User::where('role', $roleEnum)->first())
-            : User::where('role', $roleEnum)->first();
+        if ($roleEnum === UserRole::Admin) {
+            $user = User::where('email', 'admin@arunika.test')->first() ?? User::where('role', $roleEnum)->first();
+        } elseif ($roleEnum === UserRole::Lecturer) {
+            $user = User::where('email', 'dosen@arunika.test')->first() ?? User::where('role', $roleEnum)->first();
+        } else {
+            $user = User::where('role', $roleEnum)->first();
+        }
 
         if (! $user) {
             return redirect()->back()->with('error', "User demo dengan role {$roleEnum->label()} tidak ditemukan.");
         }
 
         Auth::login($user);
+        $user->forceFill(['last_login_at' => now()])->save();
 
         if ($user->campus_id) {
             session(['active_campus_id' => $user->campus_id]);
@@ -38,7 +48,13 @@ class DemoAuthController extends Controller
             session()->forget('active_campus_id');
         }
 
-        $targetRoute = $user->role === UserRole::Lecturer ? 'dosen.dashboard' : 'app.dashboard';
+        if ($user->role === UserRole::Admin || $user->role === UserRole::SuperAdmin) {
+            $targetRoute = 'admin.dashboard';
+        } elseif ($user->role === UserRole::Lecturer) {
+            $targetRoute = 'dosen.dashboard';
+        } else {
+            $targetRoute = 'app.dashboard';
+        }
 
         return redirect()->route($targetRoute)->with('success', "Beralih peran sebagai {$user->name} ({$roleEnum->label()})");
     }

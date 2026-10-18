@@ -122,6 +122,10 @@ class DiscussionController extends Controller
     {
         $user = $this->resolveUser();
 
+        if ($thread->academicClass?->isFinished()) {
+            abort(403, 'Kelas ini telah selesai. Diskusi telah dikunci.');
+        }
+
         $validated = $request->validate([
             'content' => 'required|string|min:3',
             'parent_id' => 'nullable|exists:discussion_replies,id',

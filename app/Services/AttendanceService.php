@@ -6,6 +6,7 @@ use App\Models\AcademicClass;
 use App\Models\AttendanceLog;
 use App\Models\AttendanceSession;
 use App\Models\Meeting;
+use App\Models\Presensi;
 use App\Models\User;
 use App\Models\XpLedger;
 use Carbon\Carbon;
@@ -52,10 +53,21 @@ class AttendanceService
             ->whereIn('attendance_session_id', $sessionIds)
             ->get();
 
+        $presensiRecords = Presensi::where('mahasiswa_id', $student->id)
+            ->whereIn('pertemuan_id', $meetingIds)
+            ->get();
+
         $presentCount = $logs->where('status', 'present')->count();
         $permitCount = $logs->whereIn('status', ['excused', 'permit'])->count();
-        // Absent is either explicit 'absent' status or sessions without log (excluding permit/present)
         $absentCount = $logs->where('status', 'absent')->count();
+
+        // If presensi records exist from lecturer, use them
+        if ($presensiRecords->isNotEmpty()) {
+            $presentCount = $presensiRecords->where('status', 'hadir')->count();
+            $permitCount = $presensiRecords->whereIn('status', ['izin', 'sakit'])->count();
+            $absentCount = $presensiRecords->where('status', 'tidak_hadir')->count();
+            $totalSessions = max($totalSessions, $presensiRecords->count());
+        }
 
         // If there's canonical seeded data, use canonical numbers (11 present, 1 permit, 0 absent out of 12)
         if ($totalSessions >= 12) {
@@ -155,7 +167,35 @@ class AttendanceService
             $room = 'Lab Multimedia Lt. 3';
             $notes = 'Tepat waktu';
 
-            if ($m->week === 4 || ($log && in_array($log->status, ['excused', 'permit']))) {
+            $presensi = Presensi::where('pertemuan_id', $m->id)
+                ->where('mahasiswa_id', $student->id)
+                ->first();
+
+            if ($presensi) {
+                if ($presensi->status === 'hadir') {
+                    $status = 'Hadir';
+                    $statusKey = 'hadir';
+                    $method = 'Dicatat Dosen Pengampu';
+                    $notes = $presensi->catatan ?? 'Hadir tepat waktu';
+                } elseif ($presensi->status === 'izin') {
+                    $status = 'Izin';
+                    $statusKey = 'izin';
+                    $keterangan = 'Izin Kuliah';
+                    $method = 'Dicatat Dosen Pengampu';
+                    $notes = $presensi->catatan ?? 'Izin perkuliahan';
+                } elseif ($presensi->status === 'sakit') {
+                    $status = 'Izin';
+                    $statusKey = 'izin';
+                    $keterangan = 'Sakit (Surat Dokter)';
+                    $method = 'Dicatat Dosen Pengampu';
+                    $notes = $presensi->catatan ?? 'Surat dokter terlampir';
+                } elseif ($presensi->status === 'tidak_hadir') {
+                    $status = 'Alfa';
+                    $statusKey = 'alfa';
+                    $method = 'Tidak Hadir';
+                    $notes = $presensi->catatan ?? 'Tanpa keterangan';
+                }
+            } elseif ($m->week === 4 || ($log && in_array($log->status, ['excused', 'permit']))) {
                 $status = 'Izin';
                 $statusKey = 'izin';
                 $keterangan = 'Sakit (Surat Dokter)';

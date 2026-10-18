@@ -13,7 +13,7 @@ class AcademicClassPolicy
      */
     public function view(User $user, AcademicClass $class): bool
     {
-        if (in_array($user->role, [UserRole::SuperAdmin, UserRole::CampusAdmin, UserRole::Auditor])) {
+        if (in_array($user->role, [UserRole::Admin, UserRole::SuperAdmin, UserRole::CampusAdmin, UserRole::Auditor], true)) {
             return true;
         }
 
@@ -21,9 +21,14 @@ class AcademicClassPolicy
             return $class->lecturer_id === $user->id;
         }
 
-        // Student can view details of classes enrolled or classes in their active term
-        return $class->enrollments()->where('user_id', $user->id)->exists()
-            || $class->term_id === $user->preference?->active_term_id;
+        if ($user->role === UserRole::Student) {
+            return $class->enrollments()
+                ->where('user_id', $user->id)
+                ->whereIn('status', ['aktif', 'enrolled', 'completed'])
+                ->exists();
+        }
+
+        return false;
     }
 
     /**
@@ -36,7 +41,7 @@ class AcademicClassPolicy
             return false;
         }
 
-        if (in_array($user->role, [UserRole::SuperAdmin, UserRole::CampusAdmin])) {
+        if (in_array($user->role, [UserRole::Admin, UserRole::SuperAdmin, UserRole::CampusAdmin], true)) {
             return true;
         }
 
@@ -47,7 +52,7 @@ class AcademicClassPolicy
         // Student must have an active enrollment and class must not be locked
         return $class->enrollments()
             ->where('user_id', $user->id)
-            ->whereIn('status', ['enrolled', 'completed'])
+            ->whereIn('status', ['aktif', 'enrolled', 'completed'])
             ->exists();
     }
 
@@ -56,8 +61,12 @@ class AcademicClassPolicy
      */
     public function manage(User $user, AcademicClass $class): bool
     {
-        if (in_array($user->role, [UserRole::SuperAdmin, UserRole::CampusAdmin])) {
+        if (in_array($user->role, [UserRole::Admin, UserRole::SuperAdmin, UserRole::CampusAdmin], true)) {
             return true;
+        }
+
+        if ($class->isFinished()) {
+            return false;
         }
 
         return $user->role === UserRole::Lecturer && $class->lecturer_id === $user->id;

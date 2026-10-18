@@ -13,7 +13,7 @@ class SubmissionPolicy
      */
     public function view(User $user, Submission $submission): bool
     {
-        if (in_array($user->role, [UserRole::SuperAdmin, UserRole::CampusAdmin, UserRole::Auditor])) {
+        if (in_array($user->role, [UserRole::Admin, UserRole::SuperAdmin, UserRole::CampusAdmin, UserRole::Auditor], true)) {
             return true;
         }
 
@@ -33,8 +33,13 @@ class SubmissionPolicy
      */
     public function grade(User $user, Submission $submission): bool
     {
-        if (in_array($user->role, [UserRole::SuperAdmin, UserRole::CampusAdmin])) {
+        if (in_array($user->role, [UserRole::Admin, UserRole::SuperAdmin, UserRole::CampusAdmin], true)) {
             return true;
+        }
+
+        // Dilarang menilai jika kelas sudah selesai (read-only)
+        if ($submission->assignment?->academicClass?->isFinished()) {
+            return false;
         }
 
         $lecturerId = $submission->assignment?->academicClass?->lecturer_id ?? $submission->assignment?->dosen_id;
