@@ -24,12 +24,16 @@ class DiscussionReplyPolicy
 
         $class = $thread->academicClass;
 
+        if ($class && ($class->isFinished() || $class->isLocked())) {
+            return false;
+        }
+
         if ($user->role === UserRole::Lecturer) {
             return $class?->lecturer_id === $user->id;
         }
 
         if ($user->role === UserRole::Student) {
-            return $class?->enrollments()->where('user_id', $user->id)->accessible()->exists() ?? false;
+            return $class?->enrollments()->where('user_id', $user->id)->aktif()->exists() ?? false;
         }
 
         return false;
@@ -51,7 +55,7 @@ class DiscussionReplyPolicy
 
         $class = $thread->academicClass;
 
-        if ($class?->isFinished()) {
+        if ($class && ($class->isFinished() || $class->isLocked())) {
             return false;
         }
 
@@ -60,11 +64,11 @@ class DiscussionReplyPolicy
             return true;
         }
 
-        // Author of the thread can mark solution (if student, must have accessible enrollment in class)
+        // Author of the thread can mark solution (if student, must have active enrollment in class)
         if ($thread->user_id === $user->id) {
             if ($thread->class_id !== null) {
                 if ($user->role === UserRole::Student) {
-                    return $class?->enrollments()->where('user_id', $user->id)->accessible()->exists() ?? false;
+                    return $class?->enrollments()->where('user_id', $user->id)->aktif()->exists() ?? false;
                 }
 
                 return true;

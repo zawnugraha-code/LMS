@@ -81,7 +81,7 @@ class DiscussionFlowTest extends TestCase
     public function test_student_can_create_new_discussion_thread_and_earn_xp(): void
     {
         $category = DiscussionCategory::first();
-        $class = AcademicClass::whereHas('enrollments', fn ($q) => $q->where('user_id', $this->student->id))->first() ?? AcademicClass::first();
+        $class = AcademicClass::whereHas('enrollments', fn ($q) => $q->where('user_id', $this->student->id)->aktif())->first() ?? AcademicClass::first();
         $initialXp = $this->student->total_xp;
 
         $response = $this->actingAs($this->student)->post('/app/discussions', [

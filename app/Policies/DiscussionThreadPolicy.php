@@ -50,7 +50,7 @@ class DiscussionThreadPolicy
             return true;
         }
 
-        if ($targetClass->isFinished()) {
+        if ($targetClass->isFinished() || $targetClass->isLocked()) {
             return false;
         }
 
@@ -59,7 +59,7 @@ class DiscussionThreadPolicy
         }
 
         if ($user->role === UserRole::Student) {
-            return $targetClass->enrollments()->where('user_id', $user->id)->accessible()->exists();
+            return $targetClass->enrollments()->where('user_id', $user->id)->aktif()->exists();
         }
 
         return false;
@@ -76,7 +76,7 @@ class DiscussionThreadPolicy
 
         $class = $thread->academicClass;
 
-        if ($class?->isFinished()) {
+        if ($class && ($class->isFinished() || $class->isLocked())) {
             return false;
         }
 
@@ -104,18 +104,22 @@ class DiscussionThreadPolicy
             return true;
         }
 
+        $class = $thread->academicClass;
+
+        if ($class && ($class->isFinished() || $class->isLocked())) {
+            return false;
+        }
+
         if ($thread->class_id === null) {
             return true;
         }
-
-        $class = $thread->academicClass;
 
         if ($user->role === UserRole::Lecturer) {
             return $class?->lecturer_id === $user->id;
         }
 
         if ($user->role === UserRole::Student) {
-            return $class?->enrollments()->where('user_id', $user->id)->accessible()->exists() ?? false;
+            return $class?->enrollments()->where('user_id', $user->id)->aktif()->exists() ?? false;
         }
 
         return false;

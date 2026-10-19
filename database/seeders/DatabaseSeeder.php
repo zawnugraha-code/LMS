@@ -331,7 +331,7 @@ class DatabaseSeeder extends Seeder
         Enrollment::create([
             'class_id' => $class->id,
             'user_id' => $studentArya->id,
-            'status' => 'enrolled',
+            'status' => 'aktif',
             'final_score' => 91.50,
             'letter_grade' => 'A',
         ]);
@@ -339,7 +339,7 @@ class DatabaseSeeder extends Seeder
         Enrollment::create([
             'class_id' => $class->id,
             'user_id' => $studentSiti->id,
-            'status' => 'enrolled',
+            'status' => 'aktif',
             'final_score' => 84.00,
             'letter_grade' => 'A-',
         ]);

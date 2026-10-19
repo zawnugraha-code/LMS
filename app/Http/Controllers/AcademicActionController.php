@@ -26,9 +26,9 @@ class AcademicActionController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        // Guard: Kelas selesai tidak menerima mutasi pengumpulan
-        if ($assignment->academicClass?->isFinished()) {
-            abort(403, 'Kelas ini telah selesai. Pengumpulan tugas ditutup.');
+        // Guard: Kelas selesai atau terkunci tidak menerima mutasi pengumpulan
+        if ($assignment->academicClass && ($assignment->academicClass->isFinished() || $assignment->academicClass->isLocked())) {
+            abort(403, 'Kelas ini belum dimulai atau telah selesai. Pengumpulan tugas ditutup.');
         }
 
         // Guard: Hanya mahasiswa aktif di kelas yang boleh mengumpulkan tugas

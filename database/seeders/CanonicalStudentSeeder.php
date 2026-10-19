@@ -344,7 +344,7 @@ class CanonicalStudentSeeder extends Seeder
                 'start_time' => '08:00',
                 'end_time' => '10:00',
                 'room' => 'Lab Pemrograman',
-                'status' => 'enrolled',
+                'status' => 'aktif',
                 'score' => 88.50,
                 'letter' => 'A',
                 'completed_meetings' => 7,
@@ -364,7 +364,7 @@ class CanonicalStudentSeeder extends Seeder
                 'start_time' => '10:00',
                 'end_time' => '12:00',
                 'room' => 'Lab Basis Data',
-                'status' => 'enrolled',
+                'status' => 'aktif',
                 'score' => 84.00,
                 'letter' => 'A-',
                 'completed_meetings' => 5,
@@ -384,7 +384,7 @@ class CanonicalStudentSeeder extends Seeder
                 'start_time' => '08:00',
                 'end_time' => '10:00',
                 'room' => 'Lab Pemrograman',
-                'status' => 'enrolled',
+                'status' => 'aktif',
                 'score' => 91.20,
                 'letter' => 'A',
                 'completed_meetings' => 6,
@@ -404,7 +404,7 @@ class CanonicalStudentSeeder extends Seeder
                 'start_time' => '10:00',
                 'end_time' => '12:00',
                 'room' => 'Lab Jaringan',
-                'status' => 'enrolled',
+                'status' => 'aktif',
                 'score' => 78.50,
                 'letter' => 'B+',
                 'completed_meetings' => 3,
@@ -424,7 +424,7 @@ class CanonicalStudentSeeder extends Seeder
                 'start_time' => '08:00',
                 'end_time' => '10:00',
                 'room' => 'Lab Komputer',
-                'status' => 'enrolled',
+                'status' => 'aktif',
                 'score' => 82.00,
                 'letter' => 'A-',
                 'completed_meetings' => 4,
@@ -514,7 +514,7 @@ class CanonicalStudentSeeder extends Seeder
             Enrollment::updateOrCreate(
                 ['class_id' => $class->id, 'user_id' => $studentArya->id],
                 [
-                    'status' => $isLocked ? 'upcoming' : 'enrolled',
+                    'status' => $isLocked ? 'upcoming' : 'aktif',
                     'final_score' => $data['score'],
                     'letter_grade' => $data['letter'],
                 ]
@@ -524,7 +524,7 @@ class CanonicalStudentSeeder extends Seeder
                 Enrollment::updateOrCreate(
                     ['class_id' => $class->id, 'user_id' => $legacyStudent->id],
                     [
-                        'status' => $isLocked ? 'upcoming' : 'enrolled',
+                        'status' => $isLocked ? 'upcoming' : 'aktif',
                         'final_score' => $data['score'],
                         'letter_grade' => $data['letter'],
                     ]

@@ -73,7 +73,7 @@ class AcademicStructureTest extends TestCase
         $enrollment = Enrollment::create([
             'class_id' => $class->id,
             'user_id' => $student->id,
-            'status' => 'enrolled',
+            'status' => 'aktif',
             'final_score' => 90.00,
             'letter_grade' => 'A',
         ]);

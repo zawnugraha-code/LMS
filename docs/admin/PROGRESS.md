@@ -456,4 +456,20 @@ Seluruh 5 modul inti Batch 1 (Beranda, Semester, Mata Kuliah, Kelas Perkuliahan,
 3. **Penyimpanan Berkas Terproteksi (Private Storage Migration)**:
    - Pengumpulan tugas mahasiswa (`submissions`), materi (`materials`), dan berkas izin (`permits`) saat ini diunggah ke disk `public`. Disarankan migrasi penuh ke disk `local` (`private`) disertai rute unduhan khusus yang diproteksi `Gate::authorize`.
 
+---
+
+### E. Keputusan Terbuka: Rute Legacy `/app/*` untuk Dosen dan Admin
+
+Berdasarkan audit rute, ditemukan beberapa endpoint di bawah prefix `/app/*` yang memiliki logika bercabang atau melayani peran Dosen dan Admin, serta analisis padanannya pada portal `/dosen/*`:
+
+| Rute Legacy `/app/*` | Nama Route & Controller | Perilaku Saat Ini | Padanan Resmi di `/dosen/*` | Rekomendasi / Keputusan Terbuka |
+|---|---|---|---|---|
+| `GET /app` | `app.dashboard`<br>`DashboardController@index` | **Role-Adaptive**: Menampilkan ringkasan mengajar jika user adalah Dosen, atau statistik kampus jika Admin. | `GET /dosen`<br>`DosenDashboardController@index` | Pertahankan untuk kompatibilitas tautan umum, atau redirect Dosen/Admin otomatis ke portal masing-masing (`/dosen` atau `/admin/beranda`). |
+| `POST /app/submissions/{submission}/grade` | `submissions.grade`<br>`AcademicActionController@gradeSubmission` | Menerima penilaian tugas dari dosen pengampu dengan validasi IDOR ketat. | `POST /dosen/penilaian/pengumpulan/{submission}/nilai`<br>`DosenAssessmentController@gradeSubmission` | Endpoint legacy ini digunakan oleh tes mahasiswa terdahulu. Tetap dipertahankan dengan proteksi IDOR identik. |
+| `POST /app/meetings/{meeting}/attendance` | `meetings.attendance`<br>`AcademicActionController@checkInAttendance` | Mencatat presensi mandiri / batch oleh dosen pengampu. | `POST /dosen/presensi/simpan`<br>`DosenPresensiController@store` | Endpoint legacy tetap dipertahankan untuk backward compatibility test mahasiswa. |
+| `GET /app/notifications`<br>`POST /app/notifications/mark-all-read` | `app.notifications`<br>`NotificationController` | Menyajikan daftar dan aksi notifikasi untuk seluruh pengguna terotentikasi (Mahasiswa, Dosen, Admin). | Belum ada prefix khusus di `/dosen/notifikasi`; portal dosen saat ini mengonsumsi endpoint `/api/notifications` dan `/app/notifications/*`. | Endpoint shared ini dapat tetap digunakan bersama lintas peran, atau dibuatkan wrapper view terpisah di Batch 2 jika diperlukan konsistensi sidebar dosen. |
+| `POST /app/term/switch` | `app.term.switch`<br>Closure | Mengubah session semester aktif pengguna yang sedang login. | Tidak ada (dosen menggunakan selector semester via query string di portal dosen). | Bermanfaat untuk konteks mahasiswa; dosen tidak terpengaruh karena portal dosen memuat data semester aktif secara eksplisit. |
+
+*Catatan: Seluruh rute legacy di atas tetap dipertahankan 100% tanpa ada kode yang dihapus, guna menjamin stabilitas backward-compatibility suite pengujian.*
+
 

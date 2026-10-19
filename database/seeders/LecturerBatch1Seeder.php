@@ -355,19 +355,19 @@ class LecturerBatch1Seeder extends Seeder
         // IF2101 A = 32 mhs (termasuk Ahmad, Siti, Fajar, Arya)
         $studentsPboA = $allStudents->splice(0, 32);
         foreach ($studentsPboA as $s) {
-            Enrollment::firstOrCreate(['class_id' => $classPboA->id, 'user_id' => $s->id], ['status' => 'enrolled']);
+            Enrollment::firstOrCreate(['class_id' => $classPboA->id, 'user_id' => $s->id], ['status' => 'aktif']);
         }
 
         // IF2101 B = 30 mhs (termasuk Dewi Lestari)
         $studentsPboB = $allStudents->splice(0, 30);
         foreach ($studentsPboB as $s) {
-            Enrollment::firstOrCreate(['class_id' => $classPboB->id, 'user_id' => $s->id], ['status' => 'enrolled']);
+            Enrollment::firstOrCreate(['class_id' => $classPboB->id, 'user_id' => $s->id], ['status' => 'aktif']);
         }
 
         // IF2103 A = 28 mhs (termasuk Rizky Pratama)
         $studentsBankingA = $allStudents->splice(0, 28);
         foreach ($studentsBankingA as $s) {
-            Enrollment::firstOrCreate(['class_id' => $classBankingA->id, 'user_id' => $s->id], ['status' => 'enrolled']);
+            Enrollment::firstOrCreate(['class_id' => $classBankingA->id, 'user_id' => $s->id], ['status' => 'aktif']);
         }
 
         // ==========================================

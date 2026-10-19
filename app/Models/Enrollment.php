@@ -11,27 +11,24 @@ class Enrollment extends Model
     use HasFactory;
 
     public const STATUS_AKTIF = 'aktif';
-    public const STATUS_ENROLLED = 'enrolled';
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_UPCOMING = 'upcoming';
     public const STATUS_DIKELUARKAN = 'dikeluarkan';
-    public const STATUS_KELUAR = 'keluar';
 
     /**
      * Statuses that grant full active academic access (submit assignments, check-in, active counting).
      */
     public const ACTIVE_STATUSES = [
         self::STATUS_AKTIF,
-        self::STATUS_ENROLLED,
     ];
 
     /**
-     * Statuses that grant view/read access (including completed courses).
+     * Statuses that grant read-only view access (course summary, syllabus, published materials, schedule).
      */
     public const ACCESSIBLE_STATUSES = [
         self::STATUS_AKTIF,
-        self::STATUS_ENROLLED,
         self::STATUS_COMPLETED,
+        self::STATUS_UPCOMING,
     ];
 
     /**
@@ -39,7 +36,6 @@ class Enrollment extends Model
      */
     public const REMOVED_STATUSES = [
         self::STATUS_DIKELUARKAN,
-        self::STATUS_KELUAR,
     ];
 
     protected $fillable = [

@@ -22,7 +22,7 @@
             'classes' => 'bg-slate-100 text-slate-700 border border-slate-200/80',
             'dot' => 'bg-slate-400',
         ],
-        'keluar' => [
+        'dikeluarkan', 'keluar' => [
             'label' => 'Dikeluarkan',
             'classes' => 'bg-rose-50 text-rose-700 border border-rose-200/80',
             'dot' => 'bg-rose-500',

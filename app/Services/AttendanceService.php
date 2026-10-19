@@ -402,6 +402,22 @@ class AttendanceService
         }
 
         $meeting = $session->meeting;
+        $class = $meeting->academicClass;
+
+        if ($class && ($class->isLocked() || $class->isFinished())) {
+            return [
+                'success' => false,
+                'message' => 'Kelas ini belum dimulai atau telah selesai.',
+            ];
+        }
+
+        $isEnrolledActive = $class?->enrollments()->where('user_id', $student->id)->aktif()->exists();
+        if (! $isEnrolledActive) {
+            return [
+                'success' => false,
+                'message' => 'Anda tidak terdaftar aktif dalam kelas perkuliahan ini.',
+            ];
+        }
 
         // Record attendance log
         AttendanceLog::updateOrCreate(
@@ -456,6 +472,13 @@ class AttendanceService
 
         // Find primary class active meeting
         $primaryClass = $this->resolvePrimaryClass($student);
+        if ($primaryClass && ($primaryClass->isLocked() || $primaryClass->isFinished())) {
+            return [
+                'success' => false,
+                'message' => 'Kelas ini belum dimulai atau telah selesai.',
+            ];
+        }
+
         $meeting = Meeting::where('class_id', $primaryClass?->id)->where('week', 13)->first()
             ?? Meeting::where('class_id', $primaryClass?->id)->latest('id')->first();
 
@@ -525,7 +548,15 @@ class AttendanceService
             ];
         }
 
-        $isEnrolled = $meeting->academicClass?->enrollments()
+        $class = $meeting->academicClass;
+        if ($class && ($class->isLocked() || $class->isFinished())) {
+            return [
+                'success' => false,
+                'message' => 'Kelas ini belum dimulai atau telah selesai. Pengajuan izin tidak dapat diproses.',
+            ];
+        }
+
+        $isEnrolled = $class?->enrollments()
             ->where('user_id', $student->id)
             ->aktif()
             ->exists();

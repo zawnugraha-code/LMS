@@ -133,9 +133,16 @@ class MaterialController extends Controller
 
         Gate::authorize('view', $material);
 
-        $class = $material->meeting?->academicClass;
-        if ($class && $class->isLocked()) {
-            return response()->json(['error' => 'Kelas terkunci'], 403);
+        $class = $material->meeting?->academicClass ?? $material->academicClass;
+        if ($class && ($class->isLocked() || $class->isFinished())) {
+            return response()->json(['error' => 'Kelas terkunci atau telah selesai'], 403);
+        }
+
+        if ($user->role === UserRole::Student) {
+            $isEnrolledActive = $class?->enrollments()->where('user_id', $user->id)->aktif()->exists();
+            if (! $isEnrolledActive) {
+                return response()->json(['error' => 'Aksi ini hanya dapat dilakukan oleh mahasiswa aktif'], 403);
+            }
         }
 
         $watchPercentage = (int) $request->input('watch_percentage', 100);
