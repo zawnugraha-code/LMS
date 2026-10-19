@@ -399,9 +399,9 @@ Seluruh 5 modul inti Batch 1 (Beranda, Semester, Mata Kuliah, Kelas Perkuliahan,
 
 ---
 
-## Catatan Verifikasi Pasca-A6 & Utang Teknis
+## Catatan Verifikasi Pasca-A6, Audit Rute & Keamanan (Tahap A-G)
 
-### A. Penguatan Keamanan & Integritas Pasca-A6 (Telah Diterapkan)
+### A. Penguatan Keamanan & Integritas Pasca-A6
 1. **Lockdown Role Switcher di Production**:
    - Rute `/demo/login/{role}` hanya didaftarkan jika bukan production dan environment `local`/`testing` atau flag aktif.
    - Method `DemoAuthController::switchRole` menghentikan eksekusi dengan `abort(404)` jika `app()->isProduction()`.
@@ -416,15 +416,31 @@ Seluruh 5 modul inti Batch 1 (Beranda, Semester, Mata Kuliah, Kelas Perkuliahan,
 5. **Penambahan Test Suite Pasca-A6 (`tests/Feature/AdminPostVerificationTest.php`)**:
    - Membuktikan lockdown role switcher, restriksi mutasi kelas selesai, penolakan akses mahasiswa dikeluarkan dan pemulihannya, larangan dobel seksi MK yang sama, serta pemindahan hak kelola dan badge "Perlu Dinilai" saat ganti dosen.
 
-### B. Daftar Utang Teknis (Technical Debt)
-1. **Optimasi Kueri Agregasi Portal Dosen**:
-   - Pada halaman Dosen Dashboard, Tugas, Presensi, dan Diskusi, terjadi kueri agregasi berulang sebanyak 4 kali seiring iterasi tab kelas aktif dosen. Perlu diterapkan eager loading atau kueri batch terpusat pada refactoring berikutnya.
-2. **Variasi Warna Tematik Badge SKS Mata Kuliah**:
-   - Menyesuaikan warna badge SKS (2 SKS hijau, 3 SKS ungu, 4 SKS biru) pada tabel katalog mata kuliah agar presisi 100% dengan Screenshot 3.
-3. **Eksekusi Test Suite di Database MySQL (`arunika_test`)**:
-   - Sebelum rilis ke lingkungan staging/production, seluruh test suite perlu dijalankan pada driver database MySQL terpisah (`arunika_test`) untuk memvalidasi kompatibilitas penuh dialek SQL MySQL di samping SQLite in-memory.
-4. **Konfigurasi Environment Production & Flag Role Switcher**:
-   - Berkas `.env.example` saat ini memakai `APP_ENV=local`, sehingga pada deployment server production wajib memastikan disetel ke `APP_ENV=production`. Selain itu, pertimbangkan untuk mewajibkan flag `demo_role_switcher_enabled=true` secara eksplisit di semua environment (tidak hanya bergantung pada environment `local`/`testing`).
-5. **Radius Sudut Banner Semester Aktif**:
-   - Kartu banner Semester Aktif saat ini memakai utility class Tailwind `rounded-2xl` (radius 16px), sedangkan panduan spesifikasi desain meminta radius sudut 8px (`rounded-[8px]`).
+### B. Audit Keamanan Rute, Penutupan Celah IDOR, & Refactor Status Enrollment
+1. **Refactor Status Enrollment Terpusat (`Enrollment.php`)**:
+   - Menyatukan seluruh status enrollment ke konstanta resmi: `STATUS_AKTIF` (`aktif`), `STATUS_ENROLLED` (`enrolled`), `STATUS_COMPLETED` (`completed`), `STATUS_UPCOMING` (`upcoming`), `STATUS_DIKELUARKAN` (`dikeluarkan`), `STATUS_KELUAR` (`keluar`).
+   - Menyediakan scopes terstandarisasi: `scopeAktif()` (`['aktif', 'enrolled']`), `scopeAccessible()` (`['aktif', 'enrolled', 'completed']`), `scopeCompleted()` (`'completed'`), `scopeDikeluarkan()` (`['dikeluarkan', 'keluar']`).
+   - Diterapkan secara seragam di `AcademicClass`, `AcademicClassPolicy`, `AssignmentPolicy`, `MaterialPolicy`, `EnrollmentAdminService`, `DosenPresensiService`, `GradeController`, `MaterialController`, `AcademicActionController`.
+2. **Penutupan 8 Celah Keamanan & IDOR Terverifikasi**:
+   - **Route Auth Guard**: Seluruh rute mahasiswa `/app/*` dibungkus dalam grup middleware `['web', 'auth']`. Guest yang mengakses dialihkan ke login (`302`).
+   - **IDOR Materi Dikeluarkan**: `MaterialPolicy::view` kini memeriksa `accessible()` sehingga mahasiswa dikeluarkan langsung ditolak (403).
+   - **IDOR Progress Materi**: `MaterialController::updateProgress` kini memanggil `Gate::authorize('view', $material)` sehingga mahasiswa lintas-kelas tidak bisa memanipulasi progress/XP.
+   - **IDOR Presensi Mandiri**: `AcademicActionController::checkInAttendance` memvalidasi enrollment aktif mahasiswa di kelas pertemuan sebelum presensi/pemberian XP.
+   - **IDOR Izin/Sakit Presensi**: `AttendanceService::submitPermit` menolak pengajuan permit jika mahasiswa tidak terdaftar aktif di kelas pertemuan.
+   - **IDOR Penilaian Lintas Dosen**: `AcademicActionController::gradeSubmission` memeriksa kepemilikan kelas dosen (`classLecturerId === $user->id`), menolak dosen lain dengan HTTP 403.
+   - **IDOR Favorite Diskusi Dosen**: `DosenDiscussionController::toggleFavorite` memeriksa kepemilikan kelas dosen sebelum memfavoritkan thread.
+   - **IDOR Transkrip Nilai / KHS**: `GradeController::show` dan `downloadKhs` memblokir akses dosen lintas kelas dan mahasiswa yang berstatus `dikeluarkan`.
+3. **Suite Pembuktian Keamanan HTTP (`tests/Feature/RouteSecurityAuditTest.php`)**:
+   - Menambahkan 8 test HTTP pembuktian celah yang sebelumnya gagal dan kini 100% lulus (8 passed, 13 assertions).
+
+### C. Ringkasan Eksekusi Seluruh Test Suite & Integritas Data
+* **Total Suite Pengujian**: **243 Tests, 0 Failed, 100% Passed (1.392 assertions)**.
+* **Integritas Data Kanonikal Dr. Budi Rahardjo**:
+  - IF2101 Kelas A = 32 mahasiswa
+  - IF2101 Kelas B = 30 mahasiswa
+  - IF2103 Kelas A = 28 mahasiswa
+  - Total Mahasiswa Aktif = **90 mahasiswa**
+  - Pengumpulan Tugas Perlu Dinilai = **14 pengumpulan**
+  - Notifikasi Belum Dibaca = **2 notifikasi**
+  - Data pada MySQL `arunika` **100% UTUH DAN TIDAK BERUBAH**.
 

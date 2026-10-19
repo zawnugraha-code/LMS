@@ -202,6 +202,10 @@ class DosenDiscussionController extends Controller
     {
         $lecturer = $request->user();
 
+        if ($thread->academicClass?->lecturer_id !== $lecturer->id) {
+            abort(403, 'Anda tidak memiliki hak akses untuk memfavoritkan diskusi kelas ini.');
+        }
+
         $isFav = $this->discussionService->toggleFavorite($lecturer, $thread);
 
         if ($request->wantsJson()) {

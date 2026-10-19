@@ -8,7 +8,7 @@ use App\Models\Assignment;
 use App\Models\Quiz;
 use App\Models\User;
 use App\Services\AssignmentService;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\CanonicalStudentSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -21,7 +21,7 @@ class AssignmentFlowTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(CanonicalStudentSeeder::class);
 
         $this->student = User::where('role', UserRole::Student)->where('email', 'arya.pratama@student.unus.ac.id')->first()
             ?? User::where('role', UserRole::Student)->first();

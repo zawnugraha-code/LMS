@@ -29,7 +29,7 @@ class MaterialPolicy
                 return false;
             }
 
-            return $class?->enrollments()->where('user_id', $user->id)->exists() ?? false;
+            return $class?->enrollments()->where('user_id', $user->id)->accessible()->exists() ?? false;
         }
 
         return false;

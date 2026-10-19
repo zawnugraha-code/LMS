@@ -59,7 +59,12 @@ class AcademicClass extends Model
 
     public function activeEnrollments(): HasMany
     {
-        return $this->enrollments()->whereIn('status', ['aktif', 'enrolled']);
+        return $this->enrollments()->aktif();
+    }
+
+    public function accessibleEnrollments(): HasMany
+    {
+        return $this->enrollments()->accessible();
     }
 
     public function students(): BelongsToMany
@@ -72,7 +77,15 @@ class AcademicClass extends Model
     public function activeStudents(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'enrollments', 'class_id', 'user_id')
-            ->wherePivotIn('status', ['aktif', 'enrolled'])
+            ->wherePivotIn('status', Enrollment::ACTIVE_STATUSES)
+            ->withPivot(['status', 'final_score', 'letter_grade', 'dikeluarkan_at', 'dikeluarkan_oleh'])
+            ->withTimestamps();
+    }
+
+    public function accessibleStudents(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'enrollments', 'class_id', 'user_id')
+            ->wherePivotIn('status', Enrollment::ACCESSIBLE_STATUSES)
             ->withPivot(['status', 'final_score', 'letter_grade', 'dikeluarkan_at', 'dikeluarkan_oleh'])
             ->withTimestamps();
     }

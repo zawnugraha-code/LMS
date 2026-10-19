@@ -148,6 +148,8 @@ class MaterialController extends Controller
             return response()->json(['error' => 'Unauthenticated'], 401);
         }
 
+        Gate::authorize('view', $material);
+
         $class = $material->meeting?->academicClass;
         if ($class && $class->isLocked()) {
             return response()->json(['error' => 'Kelas terkunci'], 403);

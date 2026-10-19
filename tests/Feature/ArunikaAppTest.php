@@ -106,8 +106,8 @@ class ArunikaAppTest extends TestCase
 
     public function test_lecturer_can_grade_student_submission(): void
     {
-        $lecturer = User::where('role', UserRole::Lecturer)->first();
-        $submission = Submission::first();
+        $submission = Submission::with('assignment.academicClass.lecturer')->first();
+        $lecturer = $submission->assignment->academicClass->lecturer;
 
         $response = $this->actingAs($lecturer)->post("/app/submissions/{$submission->id}/grade", [
             'score' => 96.5,

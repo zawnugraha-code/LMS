@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Enums\UserRole;
 use App\Models\Assignment;
+use App\Models\Enrollment;
 use App\Models\User;
 
 class AssignmentPolicy
@@ -27,7 +28,7 @@ class AssignmentPolicy
         if ($user->role === UserRole::Student) {
             $isEnrolled = $assignment->academicClass?->enrollments()
                 ->where('user_id', $user->id)
-                ->whereIn('status', ['aktif', 'enrolled'])
+                ->aktif()
                 ->exists();
 
             if (! $isEnrolled) {

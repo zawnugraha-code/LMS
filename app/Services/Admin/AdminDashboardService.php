@@ -40,7 +40,7 @@ class AdminDashboardService
 
         // 4. Mahasiswa Terdaftar vs Belum Terdaftar pada Semester Terpilih
         $terdaftarStudentIds = Enrollment::query()
-            ->whereIn('status', ['aktif', 'enrolled'])
+            ->aktif()
             ->when($activeTermId, function ($q) use ($activeTermId) {
                 $q->whereHas('academicClass', fn ($cq) => $cq->where('term_id', $activeTermId));
             })

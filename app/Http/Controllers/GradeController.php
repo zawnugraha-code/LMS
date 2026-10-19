@@ -80,9 +80,15 @@ class GradeController extends Controller
 
         $user = Auth::user();
 
-        // Strict authorization check: enrollment belongs to student
-        if ($enrollment->user_id !== $user->id && $user->role === UserRole::Student) {
-            abort(403, 'Anda tidak memiliki hak akses ke transkrip nilai mahasiswa ini.');
+        // Strict authorization check: enrollment belongs to student or lecturer of the class
+        if ($user->role === UserRole::Student) {
+            if ($enrollment->user_id !== $user->id || $enrollment->isDikeluarkan()) {
+                abort(403, 'Anda tidak memiliki hak akses ke transkrip nilai mahasiswa ini.');
+            }
+        } elseif ($user->role === UserRole::Lecturer) {
+            if ($enrollment->academicClass?->lecturer_id !== $user->id) {
+                abort(403, 'Anda tidak memiliki hak akses ke transkrip nilai mahasiswa kelas ini.');
+            }
         }
 
         $detail = $this->gradeService->getEnrollmentDetail($enrollment);
@@ -108,8 +114,14 @@ class GradeController extends Controller
         $user = Auth::user();
 
         // Strict authorization check
-        if ($enrollment->user_id !== $user->id && $user->role === UserRole::Student) {
-            abort(403, 'Akses ditolak.');
+        if ($user->role === UserRole::Student) {
+            if ($enrollment->user_id !== $user->id || $enrollment->isDikeluarkan()) {
+                abort(403, 'Akses ditolak.');
+            }
+        } elseif ($user->role === UserRole::Lecturer) {
+            if ($enrollment->academicClass?->lecturer_id !== $user->id) {
+                abort(403, 'Akses ditolak.');
+            }
         }
 
         $pdfBinary = $this->gradeService->generateKhsPdf($enrollment);

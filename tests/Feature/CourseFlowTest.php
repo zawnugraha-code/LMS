@@ -7,7 +7,7 @@ use App\Models\AcademicClass;
 use App\Models\Term;
 use App\Models\User;
 use App\Services\CourseService;
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\CanonicalStudentSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -20,7 +20,7 @@ class CourseFlowTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(DatabaseSeeder::class);
+        $this->seed(CanonicalStudentSeeder::class);
         $this->student = User::where('role', UserRole::Student)->where('email', 'arya.pratama@student.unus.ac.id')->first()
             ?? User::where('role', UserRole::Student)->first();
     }

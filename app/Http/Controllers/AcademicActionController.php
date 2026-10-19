@@ -34,7 +34,7 @@ class AcademicActionController extends Controller
         // Guard: Hanya mahasiswa aktif di kelas yang boleh mengumpulkan tugas
         $isEnrolled = $assignment->academicClass?->enrollments()
             ->where('user_id', $user->id)
-            ->whereIn('status', ['aktif', 'enrolled'])
+            ->aktif()
             ->exists();
 
         if (! $isEnrolled) {
@@ -117,6 +117,13 @@ class AcademicActionController extends Controller
             abort(403, 'Hanya dosen pengampu atau administrator yang berwenang memberikan nilai tugas.');
         }
 
+        if ($user->isLecturer()) {
+            $classLecturerId = $submission->assignment?->academicClass?->lecturer_id;
+            if ($classLecturerId !== $user->id) {
+                abort(403, 'Anda tidak memiliki hak akses untuk memberikan nilai pada tugas di kelas ini.');
+            }
+        }
+
         $request->validate([
             'score' => 'required|numeric|min:0|max:100',
             'feedback' => 'nullable|string|max:1000',
@@ -139,6 +146,16 @@ class AcademicActionController extends Controller
     public function checkInAttendance(Request $request, Meeting $meeting): RedirectResponse
     {
         $user = Auth::user();
+
+        // Guard: Hanya mahasiswa aktif di kelas yang boleh presensi
+        $isEnrolled = $meeting->academicClass?->enrollments()
+            ->where('user_id', $user->id)
+            ->aktif()
+            ->exists();
+
+        if (! $isEnrolled) {
+            abort(403, 'Anda tidak terdaftar aktif dalam kelas untuk pertemuan ini.');
+        }
 
         $session = $meeting->attendanceSession ?? AttendanceSession::firstOrCreate(
             ['meeting_id' => $meeting->id],

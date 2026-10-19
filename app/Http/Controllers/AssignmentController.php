@@ -89,7 +89,7 @@ class AssignmentController extends Controller
 
         // Security check: verify enrollment
         $isEnrolled = AcademicClass::where('id', $assignment->class_id)
-            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id)->aktif())
             ->exists();
 
         if (! $isEnrolled) {
@@ -121,7 +121,7 @@ class AssignmentController extends Controller
 
         // Security check: verify enrollment
         $isEnrolled = AcademicClass::where('id', $quiz->class_id)
-            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id)->aktif())
             ->exists();
 
         if (! $isEnrolled) {
@@ -152,7 +152,7 @@ class AssignmentController extends Controller
 
         // Security check
         $isEnrolled = AcademicClass::where('id', $quiz->class_id)
-            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id)->aktif())
             ->exists();
 
         if (! $isEnrolled) {

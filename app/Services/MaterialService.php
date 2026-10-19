@@ -19,7 +19,7 @@ class MaterialService
     public function getEnrolledClasses(User $user, ?Term $term = null): Collection
     {
         $query = AcademicClass::with(['course.curriculum.program', 'lecturer', 'term'])
-            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id)->whereIn('status', ['aktif', 'enrolled', 'completed']));
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id)->accessible());
 
         if ($term) {
             $query->where('term_id', $term->id);

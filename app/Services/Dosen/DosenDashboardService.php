@@ -26,7 +26,7 @@ class DosenDashboardService
         $kelasCount = $classIds->count();
 
         // 2. Total Mahasiswa (Unik di kelas-kelas tsb)
-        $totalMahasiswa = User::whereHas('enrollments', fn ($q) => $q->whereIn('class_id', $classIds))
+        $totalMahasiswa = User::whereHas('enrollments', fn ($q) => $q->whereIn('class_id', $classIds)->aktif())
             ->distinct()
             ->count();
 

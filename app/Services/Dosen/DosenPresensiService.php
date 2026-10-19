@@ -313,7 +313,7 @@ class DosenPresensiService
         // Enrolled students in selected class
         $students = collect();
         if ($selectedClass) {
-            $enrolledUsers = User::whereHas('enrollments', fn ($q) => $q->where('class_id', $selectedClass->id))
+            $enrolledUsers = User::whereHas('enrollments', fn ($q) => $q->where('class_id', $selectedClass->id)->aktif())
                 ->orderBy('identifier')
                 ->get();
 

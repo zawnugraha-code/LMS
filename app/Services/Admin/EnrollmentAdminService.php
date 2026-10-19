@@ -64,11 +64,11 @@ class EnrollmentAdminService
         }
 
         // Hitung kuota & metrik tab
-        $countTerdaftar = $selectedClass->enrollments()->whereIn('status', ['aktif', 'enrolled'])->count();
-        $countDikeluarkan = $selectedClass->enrollments()->where('status', 'dikeluarkan')->count();
+        $countTerdaftar = $selectedClass->enrollments()->aktif()->count();
+        $countDikeluarkan = $selectedClass->enrollments()->dikeluarkan()->count();
 
         $enrolledUserIds = $selectedClass->enrollments()
-            ->whereIn('status', ['aktif', 'enrolled'])
+            ->aktif()
             ->pluck('user_id');
 
         $countBelumTerdaftar = User::where('role', UserRole::Student)
@@ -111,7 +111,7 @@ class EnrollmentAdminService
                 ->paginate(30),
 
             default => $selectedClass->enrollments()
-                ->whereIn('status', ['aktif', 'enrolled'])
+                ->aktif()
                 ->with(['user'])
                 ->when($search, function ($q) use ($search) {
                     $q->whereHas('user', function ($uq) use ($search) {
@@ -170,7 +170,7 @@ class EnrollmentAdminService
 
             // Periksa apakah mahasiswa sudah terdaftar di seksi lain untuk mata kuliah yang sama pada semester yang sama
             $alreadyEnrolledInSameCourse = Enrollment::where('user_id', $userId)
-                ->whereIn('status', ['aktif', 'enrolled'])
+                ->aktif()
                 ->where('class_id', '!=', $class->id)
                 ->whereHas('academicClass', function ($q) use ($class) {
                     $q->where('course_id', $class->course_id)
@@ -190,7 +190,7 @@ class EnrollmentAdminService
                 ->first();
 
             if ($enrollment) {
-                if (in_array($enrollment->status, ['aktif', 'enrolled'])) {
+                if ($enrollment->isActive()) {
                     throw new InvalidArgumentException(
                         "Mahasiswa {$user->name} ({$user->identifier}) sudah terdaftar aktif di kelas ini."
                     );
@@ -198,7 +198,7 @@ class EnrollmentAdminService
 
                 // Aktifkan kembali mahasiswa yang sebelumnya berstatus dikeluarkan
                 $enrollment->update([
-                    'status' => 'aktif',
+                    'status' => Enrollment::STATUS_AKTIF,
                     'dikeluarkan_at' => null,
                     'dikeluarkan_oleh' => null,
                 ]);
@@ -206,7 +206,7 @@ class EnrollmentAdminService
                 $enrollment = Enrollment::create([
                     'class_id' => $class->id,
                     'user_id' => $userId,
-                    'status' => 'aktif',
+                    'status' => Enrollment::STATUS_AKTIF,
                 ]);
             }
 
@@ -260,14 +260,14 @@ class EnrollmentAdminService
                 ->where('user_id', $userId)
                 ->firstOrFail();
 
-            if ($enrollment->status === 'dikeluarkan') {
+            if ($enrollment->isDikeluarkan()) {
                 throw new InvalidArgumentException("Mahasiswa telah berstatus dikeluarkan dari kelas ini.");
             }
 
             $user = $enrollment->user;
 
             $enrollment->update([
-                'status' => 'dikeluarkan',
+                'status' => Enrollment::STATUS_DIKELUARKAN,
                 'dikeluarkan_at' => Carbon::now(),
                 'dikeluarkan_oleh' => $adminId,
             ]);

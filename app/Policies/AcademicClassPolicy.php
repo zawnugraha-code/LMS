@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Enums\UserRole;
 use App\Models\AcademicClass;
+use App\Models\Enrollment;
 use App\Models\User;
 
 class AcademicClassPolicy
@@ -24,7 +25,7 @@ class AcademicClassPolicy
         if ($user->role === UserRole::Student) {
             return $class->enrollments()
                 ->where('user_id', $user->id)
-                ->whereIn('status', ['aktif', 'enrolled', 'completed'])
+                ->accessible()
                 ->exists();
         }
 
@@ -52,7 +53,7 @@ class AcademicClassPolicy
         // Student must have an active enrollment and class must not be locked
         return $class->enrollments()
             ->where('user_id', $user->id)
-            ->whereIn('status', ['aktif', 'enrolled', 'completed'])
+            ->accessible()
             ->exists();
     }
 

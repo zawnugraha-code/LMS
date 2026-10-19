@@ -525,6 +525,18 @@ class AttendanceService
             ];
         }
 
+        $isEnrolled = $meeting->academicClass?->enrollments()
+            ->where('user_id', $student->id)
+            ->aktif()
+            ->exists();
+
+        if (! $isEnrolled) {
+            return [
+                'success' => false,
+                'message' => 'Anda tidak terdaftar aktif dalam kelas untuk pertemuan ini.',
+            ];
+        }
+
         $session = AttendanceSession::firstOrCreate(
             ['meeting_id' => $meeting->id],
             [
