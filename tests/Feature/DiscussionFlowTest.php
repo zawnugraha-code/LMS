@@ -90,9 +90,6 @@ class DiscussionFlowTest extends TestCase
             'class_id' => $class->id,
             'content' => 'Saya mendapati penggunaan memori bertambah drastis saat memproses dataset berukuran 100MB di artisan command.',
         ]);
-        if (! $response->isRedirect()) {
-            dump($response->status(), session('errors')?->all(), $response->content());
-        }
 
         $newThread = DiscussionThread::where('title', 'Bagaimana cara debugging memory leak pada PHP 8.4?')->first();
         $this->assertNotNull($newThread);

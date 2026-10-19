@@ -59,7 +59,7 @@ class DiscussionThreadPolicy
         }
 
         if ($user->role === UserRole::Student) {
-            return $targetClass->enrollments()->where('user_id', $user->id)->aktif()->exists();
+            return $targetClass->enrollments()->where('user_id', $user->id)->accessible()->exists();
         }
 
         return false;
