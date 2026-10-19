@@ -25,17 +25,6 @@ class GradeController extends Controller
      */
     public function index(Request $request): View
     {
-        if (! Auth::check()) {
-            $defaultUser = User::where('role', UserRole::Student)->where('email', 'arya.pratama@student.unus.ac.id')->first()
-                ?? User::where('role', UserRole::Student)->first();
-            if ($defaultUser) {
-                Auth::login($defaultUser);
-                if ($defaultUser->campus_id) {
-                    session(['active_campus_id' => $defaultUser->campus_id]);
-                }
-            }
-        }
-
         $user = Auth::user();
         $campus = $user?->campus ?? Campus::first();
 
@@ -67,17 +56,6 @@ class GradeController extends Controller
      */
     public function show(Enrollment $enrollment): View
     {
-        if (! Auth::check()) {
-            $defaultUser = User::where('role', UserRole::Student)->where('email', 'arya.pratama@student.unus.ac.id')->first()
-                ?? User::where('role', UserRole::Student)->first();
-            if ($defaultUser) {
-                Auth::login($defaultUser);
-                if ($defaultUser->campus_id) {
-                    session(['active_campus_id' => $defaultUser->campus_id]);
-                }
-            }
-        }
-
         $user = Auth::user();
 
         // Strict authorization check: enrollment belongs to student or lecturer of the class
@@ -103,14 +81,6 @@ class GradeController extends Controller
      */
     public function downloadKhs(Enrollment $enrollment): Response
     {
-        if (! Auth::check()) {
-            $defaultUser = User::where('role', UserRole::Student)->where('email', 'arya.pratama@student.unus.ac.id')->first()
-                ?? User::where('role', UserRole::Student)->first();
-            if ($defaultUser) {
-                Auth::login($defaultUser);
-            }
-        }
-
         $user = Auth::user();
 
         // Strict authorization check
@@ -139,14 +109,6 @@ class GradeController extends Controller
      */
     public function downloadFullKhs(Request $request): Response
     {
-        if (! Auth::check()) {
-            $defaultUser = User::where('role', UserRole::Student)->where('email', 'arya.pratama@student.unus.ac.id')->first()
-                ?? User::where('role', UserRole::Student)->first();
-            if ($defaultUser) {
-                Auth::login($defaultUser);
-            }
-        }
-
         $user = Auth::user();
         $firstEnrollment = Enrollment::where('user_id', $user->id)->first() ?? Enrollment::first();
 

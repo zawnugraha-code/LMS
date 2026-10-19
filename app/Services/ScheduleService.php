@@ -32,7 +32,7 @@ class ScheduleService
         $term = $termId ? Term::find($termId) : $this->getActiveTerm();
 
         $query = AcademicClass::with(['course', 'lecturer', 'term', 'meetings.materials'])
-            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $student->id));
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $student->id)->accessible());
 
         if ($term) {
             $query->where('term_id', $term->id);

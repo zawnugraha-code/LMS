@@ -25,17 +25,6 @@ class ScheduleController extends Controller
      */
     public function index(Request $request): View
     {
-        // Auto-login default demo student if unauthenticated
-        if (! Auth::check()) {
-            $defaultUser = User::where('role', UserRole::Student)->first() ?? User::first();
-            if ($defaultUser) {
-                Auth::login($defaultUser);
-                if ($defaultUser->campus_id) {
-                    session(['active_campus_id' => $defaultUser->campus_id]);
-                }
-            }
-        }
-
         $user = Auth::user();
         $campus = $user?->campus ?? Campus::first();
         $activeTerm = $this->scheduleService->getActiveTerm();
@@ -77,13 +66,6 @@ class ScheduleController extends Controller
      */
     public function exportIcs(Request $request): Response
     {
-        if (! Auth::check()) {
-            $defaultUser = User::where('role', UserRole::Student)->first() ?? User::first();
-            if ($defaultUser) {
-                Auth::login($defaultUser);
-            }
-        }
-
         $user = Auth::user();
         $classId = $request->has('class_id') ? (int) $request->input('class_id') : null;
         $icsData = $this->scheduleService->generateIcs($user, $classId);

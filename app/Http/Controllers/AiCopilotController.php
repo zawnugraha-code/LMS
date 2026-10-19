@@ -15,20 +15,10 @@ use Illuminate\View\View;
 class AiCopilotController extends Controller
 {
     /**
-     * Helper to authenticate default student if session is empty (demo mode).
+     * Helper to resolve authenticated user.
      */
-    protected function resolveUser(): User
+    protected function resolveUser(): ?User
     {
-        if (! Auth::check()) {
-            $defaultUser = User::where('role', UserRole::Student)->first() ?? User::first();
-            if ($defaultUser) {
-                Auth::login($defaultUser);
-                if ($defaultUser->campus_id) {
-                    session(['active_campus_id' => $defaultUser->campus_id]);
-                }
-            }
-        }
-
         return Auth::user();
     }
 
@@ -38,11 +28,11 @@ class AiCopilotController extends Controller
     public function index(Request $request, AiService $aiService): View
     {
         $user = $this->resolveUser();
-        $campus = $user->campus ?? Campus::first();
+        $campus = $user?->campus ?? Campus::first();
 
         // Enrolled classes for subject context dropdown
         $enrolledClasses = AcademicClass::with(['course', 'lecturer'])
-            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id)->accessible())
             ->get();
 
         $defaultClass = $enrolledClasses->first();

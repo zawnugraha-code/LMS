@@ -81,7 +81,7 @@ class DiscussionFlowTest extends TestCase
     public function test_student_can_create_new_discussion_thread_and_earn_xp(): void
     {
         $category = DiscussionCategory::first();
-        $class = AcademicClass::first();
+        $class = AcademicClass::whereHas('enrollments', fn ($q) => $q->where('user_id', $this->student->id))->first() ?? AcademicClass::first();
         $initialXp = $this->student->total_xp;
 
         $response = $this->actingAs($this->student)->post('/app/discussions', [
@@ -90,6 +90,9 @@ class DiscussionFlowTest extends TestCase
             'class_id' => $class->id,
             'content' => 'Saya mendapati penggunaan memori bertambah drastis saat memproses dataset berukuran 100MB di artisan command.',
         ]);
+        if (! $response->isRedirect()) {
+            dump($response->status(), session('errors')?->all(), $response->content());
+        }
 
         $newThread = DiscussionThread::where('title', 'Bagaimana cara debugging memory leak pada PHP 8.4?')->first();
         $this->assertNotNull($newThread);

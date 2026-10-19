@@ -26,16 +26,6 @@ class AttendanceController extends Controller
      */
     public function index(Request $request): View
     {
-        if (! Auth::check()) {
-            $defaultUser = User::where('role', UserRole::Student)->first() ?? User::first();
-            if ($defaultUser) {
-                Auth::login($defaultUser);
-                if ($defaultUser->campus_id) {
-                    session(['active_campus_id' => $defaultUser->campus_id]);
-                }
-            }
-        }
-
         $user = Auth::user();
         $campus = $user?->campus ?? Campus::first();
 
@@ -43,7 +33,7 @@ class AttendanceController extends Controller
         $terms = $this->termService->getAllTerms();
 
         $enrolledClasses = AcademicClass::with(['course', 'lecturer'])
-            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id)->accessible())
             ->get();
 
         $selectedClassId = $request->query('class_id');

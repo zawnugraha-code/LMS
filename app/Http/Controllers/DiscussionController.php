@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class DiscussionController extends Controller
@@ -38,14 +39,10 @@ class DiscussionController extends Controller
         $stats = $this->discussionService->getDiscussionStats();
         $popularThreads = $this->discussionService->getPopularThreads(5);
 
-        // Academic classes for dropdown in "Buat Diskusi Baru"
+        // Academic classes for dropdown in "Buat Diskusi Baru" (scoped to accessible enrollments)
         $enrolledClasses = AcademicClass::with('course')
-            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id))
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $user->id)->accessible())
             ->get();
-
-        if ($enrolledClasses->isEmpty()) {
-            $enrolledClasses = AcademicClass::with('course')->take(6)->get();
-        }
 
         return view('pages.app.discussions', [
             'user' => $user,
@@ -69,6 +66,9 @@ class DiscussionController extends Controller
     {
         $user = $this->resolveUser();
         $campus = $user?->campus ?? Campus::first();
+
+        // Enforce view authorization via Policy
+        Gate::authorize('view', $thread);
 
         // Record daily view
         $this->discussionService->recordView($thread, $user, $request->ip());
@@ -109,6 +109,12 @@ class DiscussionController extends Controller
             'attachment' => 'nullable|file|max:10240',
         ]);
 
+        // Enforce authorization if creating thread for a specific class
+        if (! empty($validated['class_id'])) {
+            $class = AcademicClass::findOrFail($validated['class_id']);
+            Gate::authorize('createInClass', [DiscussionThread::class, $class]);
+        }
+
         $thread = $this->discussionService->createThread($user, $validated, $request->file('attachment'));
 
         return redirect()->route('app.discussions.show', $thread)
@@ -122,9 +128,8 @@ class DiscussionController extends Controller
     {
         $user = $this->resolveUser();
 
-        if ($thread->academicClass?->isFinished()) {
-            abort(403, 'Kelas ini telah selesai. Diskusi telah dikunci.');
-        }
+        // Enforce reply authorization via Policy
+        Gate::authorize('reply', $thread);
 
         $validated = $request->validate([
             'content' => 'required|string|min:3',
@@ -151,6 +156,10 @@ class DiscussionController extends Controller
     public function upvoteThread(DiscussionThread $thread, Request $request): RedirectResponse|JsonResponse
     {
         $user = $this->resolveUser();
+
+        // Enforce upvote authorization via Policy
+        Gate::authorize('upvote', $thread);
+
         $newCount = $this->discussionService->upvoteThread($user, $thread);
 
         if ($request->wantsJson()) {
@@ -171,6 +180,10 @@ class DiscussionController extends Controller
     public function upvoteReply(DiscussionReply $reply, Request $request): RedirectResponse|JsonResponse
     {
         $user = $this->resolveUser();
+
+        // Enforce upvote authorization via Policy
+        Gate::authorize('upvote', $reply);
+
         $newCount = $this->discussionService->upvoteReply($user, $reply);
 
         if ($request->wantsJson()) {
@@ -191,6 +204,10 @@ class DiscussionController extends Controller
     public function markSolution(DiscussionReply $reply, Request $request): RedirectResponse|JsonResponse
     {
         $user = $this->resolveUser();
+
+        // Enforce solution marking authorization via Policy
+        Gate::authorize('markSolution', $reply);
+
         $marked = $this->discussionService->markAsSolution($user, $reply);
 
         if (! $marked) {
@@ -209,20 +226,10 @@ class DiscussionController extends Controller
     }
 
     /**
-     * Helper to resolve authenticated user or fallback default student.
+     * Helper to resolve authenticated user.
      */
-    protected function resolveUser(): User
+    protected function resolveUser(): ?User
     {
-        if (! Auth::check()) {
-            $defaultUser = User::where('role', UserRole::Student)->first() ?? User::first();
-            if ($defaultUser) {
-                Auth::login($defaultUser);
-                if ($defaultUser->campus_id) {
-                    session(['active_campus_id' => $defaultUser->campus_id]);
-                }
-            }
-        }
-
         return Auth::user();
     }
 }

@@ -24,18 +24,6 @@ class MaterialController extends Controller
         AcademicTermService $termService,
         MaterialService $materialService
     ): View {
-        if (! Auth::check()) {
-            $defaultUser = User::where('role', UserRole::Student)->where('email', 'arya.pratama@student.unus.ac.id')->first()
-                ?? User::where('role', UserRole::Student)->first()
-                ?? User::first();
-            if ($defaultUser) {
-                Auth::login($defaultUser);
-                if ($defaultUser->campus_id) {
-                    session(['active_campus_id' => $defaultUser->campus_id]);
-                }
-            }
-        }
-
         $user = Auth::user();
         $campus = $user?->campus ?? Campus::first();
         $activeTerm = $termService->getActiveTerm();
@@ -94,11 +82,6 @@ class MaterialController extends Controller
     public function view(Material $material): View
     {
         $user = Auth::user();
-        if (! $user) {
-            $user = User::where('role', UserRole::Student)->where('email', 'arya.pratama@student.unus.ac.id')->first()
-                ?? User::where('role', UserRole::Student)->first();
-            Auth::login($user);
-        }
 
         $meeting = $material->meeting;
         $class = $meeting?->academicClass;

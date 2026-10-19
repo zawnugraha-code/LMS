@@ -24,6 +24,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register Discussion Policies
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\DiscussionThread::class, \App\Policies\DiscussionThreadPolicy::class);
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\DiscussionReply::class, \App\Policies\DiscussionReplyPolicy::class);
+
         Model::preventLazyLoading(! app()->isProduction());
 
         // Support for APP_FAKE_NOW (Carbon::setTestNow) for local demo dates

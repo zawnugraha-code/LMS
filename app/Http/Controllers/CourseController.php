@@ -23,16 +23,6 @@ class CourseController extends Controller
         AcademicTermService $termService,
         CourseService $courseService
     ): View {
-        if (! Auth::check()) {
-            $defaultUser = User::where('role', UserRole::Student)->first() ?? User::first();
-            if ($defaultUser) {
-                Auth::login($defaultUser);
-                if ($defaultUser->campus_id) {
-                    session(['active_campus_id' => $defaultUser->campus_id]);
-                }
-            }
-        }
-
         $user = Auth::user();
         $campus = $user?->campus ?? Campus::first();
         $activeTerm = $termService->getActiveTerm();
@@ -60,10 +50,6 @@ class CourseController extends Controller
     public function show(AcademicClass $class): View
     {
         $user = Auth::user();
-        if (! $user) {
-            $user = User::where('role', UserRole::Student)->first();
-            Auth::login($user);
-        }
 
         // Authorize view via Policy
         Gate::authorize('view', $class);
@@ -94,10 +80,6 @@ class CourseController extends Controller
     public function classroom(AcademicClass $class): View
     {
         $user = Auth::user();
-        if (! $user) {
-            $user = User::where('role', UserRole::Student)->first();
-            Auth::login($user);
-        }
 
         // Server-side lock and authorization guard
         if ($class->isLocked()) {

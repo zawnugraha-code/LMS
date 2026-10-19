@@ -444,3 +444,16 @@ Seluruh 5 modul inti Batch 1 (Beranda, Semester, Mata Kuliah, Kelas Perkuliahan,
   - Notifikasi Belum Dibaca = **2 notifikasi**
   - Data pada MySQL `arunika` **100% UTUH DAN TIDAK BERUBAH**.
 
+### D. Utang Teknis & Rekomendasi Hardening Produksi
+1. **Rate Limiting / Throttle pada Titik Rawan**:
+   - Menambahkan middleware rate limiter (misalnya `throttle:10,1` atau `throttle:60,1`) pada endpoint `/api/copilot/ask` guna mencegah pemborosan token LLM dan potensi DoS.
+   - Menambahkan throttle proteksi brute force pada endpoint login produksi (`throttle:5,1`).
+2. **Kewajiban Pengujian Komprehensif pada MySQL (`arunika_test`)**:
+   - Seluruh test suite fitur saat ini dieksekusi menggunakan database in-memory SQLite untuk kecepatan runner. Sebelum rilis production, wajib menjalankan seluruh suite pada instance MySQL nyata (basis data `arunika_test`) untuk memvalidasi:
+     - Integritas foreign key constraints dan relasi cascade.
+     - Penanganan tipe data JSON (misalnya kolom `settings` dan `syllabus` pada MySQL 8.0).
+     - Perilaku case-sensitivity pada string/collation `utf8mb4_unicode_ci`.
+3. **Penyimpanan Berkas Terproteksi (Private Storage Migration)**:
+   - Pengumpulan tugas mahasiswa (`submissions`), materi (`materials`), dan berkas izin (`permits`) saat ini diunggah ke disk `public`. Disarankan migrasi penuh ke disk `local` (`private`) disertai rute unduhan khusus yang diproteksi `Gate::authorize`.
+
+

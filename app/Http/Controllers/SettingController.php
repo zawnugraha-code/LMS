@@ -19,20 +19,10 @@ class SettingController extends Controller
     ) {}
 
     /**
-     * Helper to authenticate default student if session is empty (demo mode).
+     * Helper to resolve authenticated user.
      */
-    protected function resolveUser(): User
+    protected function resolveUser(): ?User
     {
-        if (! Auth::check()) {
-            $defaultUser = User::where('role', UserRole::Student)->first() ?? User::first();
-            if ($defaultUser) {
-                Auth::login($defaultUser);
-                if ($defaultUser->campus_id) {
-                    session(['active_campus_id' => $defaultUser->campus_id]);
-                }
-            }
-        }
-
         return Auth::user();
     }
 

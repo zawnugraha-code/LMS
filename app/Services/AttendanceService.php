@@ -579,10 +579,10 @@ class AttendanceService
     {
         return AcademicClass::with(['course', 'lecturer'])
             ->whereHas('course', fn ($q) => $q->where('code', 'IF2101'))
-            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $student->id))
+            ->whereHas('enrollments', fn ($q) => $q->where('user_id', $student->id)->accessible())
             ->first()
             ?? AcademicClass::with(['course', 'lecturer'])
-                ->whereHas('enrollments', fn ($q) => $q->where('user_id', $student->id))
+                ->whereHas('enrollments', fn ($q) => $q->where('user_id', $student->id)->accessible())
                 ->first();
     }
 }
