@@ -223,8 +223,8 @@ class SettingService
         $attachmentPath = null;
         if ($attachment) {
             $filename = 'support_'.$user->id.'_'.time().'.'.$attachment->getClientOriginalExtension();
-            $path = $attachment->storeAs('support', $filename, 'public');
-            $attachmentPath = '/storage/'.$path;
+            $path = $attachment->storeAs('support', $filename, 'private');
+            $attachmentPath = $path;
         }
 
         return SupportTicket::create([

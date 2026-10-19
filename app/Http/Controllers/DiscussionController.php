@@ -106,7 +106,7 @@ class DiscussionController extends Controller
             'category_id' => 'required|exists:discussion_categories,id',
             'class_id' => 'nullable|exists:classes,id',
             'content' => 'required|string',
-            'attachment' => 'nullable|file|max:10240',
+            'attachment' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,zip,jpg,jpeg,png|max:10240',
         ]);
 
         // Enforce authorization if creating thread for a specific class

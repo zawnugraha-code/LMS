@@ -343,9 +343,9 @@
 
                             <!-- Berkas / Jawaban -->
                             <td class="px-3 py-3.5 min-w-[180px] max-w-[240px]">
-                                @if ($row['file_path'])
+                                @if ($row['file_path'] && $row['submission'])
                                     <a 
-                                        href="{{ asset('storage/' . $row['file_path']) }}" 
+                                        href="{{ route('berkas.pengumpulan', $row['submission']) }}" 
                                         target="_blank" 
                                         class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-[#2563EB] bg-blue-50/60 hover:bg-blue-100/70 rounded-[6px] border border-blue-200 transition-colors truncate max-w-full"
                                         title="Unduh / Buka Berkas: {{ basename($row['file_path']) }}"

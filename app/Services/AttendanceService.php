@@ -580,7 +580,7 @@ class AttendanceService
 
         $filePath = null;
         if ($document) {
-            $filePath = $document->store('permits', 'public');
+            $filePath = $document->store('permits', 'private');
         }
 
         AttendanceLog::updateOrCreate(

@@ -187,7 +187,11 @@ class AssignmentController extends Controller
      */
     public function downloadAttachment(Assignment $assignment): Response
     {
-        Gate::authorize('view', $assignment);
+        Gate::authorize('download', $assignment);
+
+        if ($assignment->lampiran_path) {
+            return redirect()->route('berkas.tugas', $assignment);
+        }
 
         $content = "%PDF-1.4\n% Panduan Resmi Tugas {$assignment->title}\n% Arunika Learning OS\n1 0 obj\n<< /Title ({$assignment->title}) >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF";
         $fileName = 'Panduan_'.substr(preg_replace('/[^A-Za-z0-9]/', '_', $assignment->title), 0, 30).'.pdf';

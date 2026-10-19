@@ -44,7 +44,7 @@ class AcademicActionController extends Controller
         $request->validate([
             'content' => 'nullable|string',
             'file_url' => 'nullable|string|max:255',
-            'file' => 'nullable|file|max:25600',
+            'file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,zip,jpg,jpeg,png|max:10240',
             'action' => 'nullable|string',
         ]);
 
@@ -55,7 +55,7 @@ class AcademicActionController extends Controller
         if ($request->hasFile('file')) {
             $uploaded = $request->file('file');
             $fileName = $user->identifier.'-'.time().'-'.$uploaded->getClientOriginalName();
-            $filePath = $uploaded->storeAs('submissions', $fileName, 'public');
+            $filePath = $uploaded->storeAs('submissions', $fileName, 'private');
         } elseif (! $filePath) {
             $filePath = '/submissions/'.$user->identifier.'-submission.zip';
         }

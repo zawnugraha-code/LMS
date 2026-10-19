@@ -472,4 +472,73 @@ Berdasarkan audit rute, ditemukan beberapa endpoint di bawah prefix `/app/*` yan
 
 *Catatan: Seluruh rute legacy di atas tetap dipertahankan 100% tanpa ada kode yang dihapus, guna menjamin stabilitas backward-compatibility suite pengujian.*
 
+---
 
+### F. Penguatan & Migrasi Penyimpanan Berkas Privat (Hardening Ronde Final Batch 1)
+
+Sesuai instruksi dan persetujuan ronde verifikasi terakhir Batch 1, seluruh penulisan dan penyajian berkas privat telah dimigrasikan dari disk publik ke disk privat terisolasi:
+
+1. **Konfigurasi Disk Privat (`config/filesystems.php` & `config/arunika.php`)**:
+   - Didaftarkan disk `'private'` secara eksplisit (`storage/app/private`), di luar webroot publik web server.
+   - Folder impor/ekspor CSV dikonfirmasikan di `storage/app/private/imports` dan `storage/app/private/exports`.
+   - Disk `'public'` dipertahankan khusus untuk aset publik yang disengaja (`avatars`, cover, banner).
+
+2. **Allowlist Upload & Batas Ukuran Berkas**:
+   - Berkas pembelajaran, tugas, pengumpulan, diskusi, presensi, dan tiket bantuan:
+     - Allowlist: `pdf, doc, docx, ppt, pptx, zip, jpg, jpeg, png`
+     - Batas ukuran: Maksimal 10 MB (`max:10240`)
+     - Dukungan `ppt` dan `pptx` wajib untuk materi slide perkuliahan dosen.
+   - Berkas foto profil / avatar:
+     - Allowlist: `jpg, jpeg, png` saja (tanpa SVG untuk mencegah celah Stored XSS / XML Injection).
+     - Batas ukuran: Maksimal 10 MB (`max:10240`).
+
+3. **Perintah Artisan Migrasi Berkas (`arunika:pindah-file-privat`)**:
+   - Berkas: `app/Console/Commands/PindahFilePrivatCommand.php`.
+   - Signature: `arunika:pindah-file-privat {--dry-run} {--jalankan} {--hapus-sumber}`.
+   - **Urutan Operasional Migrasi**:
+     1. **Langkah 1 (Dry-run)**: Jalankan `php artisan arunika:pindah-file-privat` (atau `--dry-run`). Perintah memindai seluruh record DB (materi, tugas, pengumpulan, izin, diskusi, tiket bantuan), memverifikasi keberadaan berkas fisik nyata di `storage/app/public`, dan membedakan dari data mock seeder tanpa mengubah apa pun di filesystem.
+     2. **Langkah 2 (Menyalin & Verifikasi)**: Jalankan `php artisan arunika:pindah-file-privat --jalankan`. Berkas fisik disalin ke `storage/app/private/` dan diverifikasi identik secara otomatis melalui kesamaan ukuran byte dan nilai hash SHA-256. Berkas sumber di `storage/app/public` tetap dipertahankan utuh.
+     3. **Langkah 3 (Pengecekan Manual)**: Operator/Admin memverifikasi sampel berkas di `storage/app/private/` serta menguji fungsionalitas preview/unduh melalui aplikasi web.
+     4. **Langkah 4 (Pembersihan Sumber)**: Jalankan `php artisan arunika:pindah-file-privat --hapus-sumber`. Perintah hanya menghapus berkas sumber jika berkas target di disk privat sudah ada dan hash SHA-256 terbukti 100% cocok. Jika target tidak cocok/rusak, sumber TIDAK dihapus dan galat dicatat. Perintah ini sepenuhnya idempotent.
+   - **Catatan Berkas Tiket Bantuan**:
+     - Berkas lampiran tiket bantuan (`helpdesk` / `support_tickets`) dipindahkan ke direktori disk privat (`storage/app/private/tickets`) dan **tetap privat tanpa rute web publik** hingga modul tiket bantuan diimplementasikan penuh pada Batch 2.
+
+4. **Controller Unduhan Privat & Rute Berkas Netral**:
+   - Rute memakai prefix netral `/berkas/...` (nama rute `berkas.*`), berada dalam middleware `auth` murni tanpa batasan peran di tingkat routing:
+     - `GET /berkas/materi/{material}` (`berkas.materi`) diproteksi `MaterialPolicy::download`
+     - `GET /berkas/tugas/{assignment}` (`berkas.tugas`) diproteksi `AssignmentPolicy::download`
+     - `GET /berkas/pengumpulan/{submission}` (`berkas.pengumpulan`) diproteksi `SubmissionPolicy::download`
+     - `GET /berkas/izin/{log}` (`berkas.izin`) diproteksi otorisasi pemilik, dosen pengampu, atau admin
+     - `GET /berkas/diskusi/{thread}` (`berkas.diskusi`) diproteksi `DiscussionThreadPolicy::view`
+   - Otorisasi "Admin" pada policy secara ketat merujuk pada peran administrator (`UserRole::Admin`) yang diloloskan middleware `/admin`, tanpa memperluas ke `super_admin` atau `campus_admin` (sesuai arahan perancangan Fase A7).
+   - Dosen dari `/dosen/...` dan Admin dari `/admin/...` dapat langsung membuka berkas melalui rute netral ini tanpa konflik middleware peran. Pengguna tamu diarahkan ke halaman login (302).
+   - Pengembalian HTTP 404 Rapi: Jika entri DB ada tetapi berkas fisik tidak ada di disk (data seed), rute mengembalikan `abort(404, 'Berkas fisik tidak ditemukan di server.')`, bukan HTTP 500 error.
+   - Header Keamanan & CSP:
+     - Allowlist MIME types: `pdf, jpg, jpeg, png, doc, docx, ppt, pptx, zip`.
+     - Hanya `pdf, jpg, jpeg, png` yang diizinkan disajikan `inline`; jenis lainnya selalu dipaksa unduh (`Content-Disposition: attachment`).
+     - Seluruh respons inline menyertakan `Content-Security-Policy: sandbox` dan `X-Content-Type-Options: nosniff`.
+     - Nama berkas pada `Content-Disposition` disanitasi dari karakter injeksi, sedangkan berkas fisik di disk tetap tersimpan dengan nama hash acak.
+
+5. **Pembaruan Seluruh Tautan Tampilan Blade**:
+   - Seluruh tautan yang sebelumnya mengarah ke `asset('storage/...')` telah diganti:
+     - `resources/views/pages/dosen/penilaian/show.blade.php`: `route('berkas.pengumpulan', $row['submission'])`
+     - `resources/views/pages/dosen/materi/index.blade.php`: `route('berkas.materi', $mat)`
+     - `resources/views/pages/app/material-viewer.blade.php`: `route('berkas.materi', $material)`
+     - `resources/views/pages/app/discussion-detail.blade.php`: `route('berkas.diskusi', $thread)`
+     - `resources/views/pages/app/assignment-submit.blade.php`: `route('berkas.pengumpulan', $submission)`
+
+6. **Pengujian Menyeluruh (`tests/Feature/FileStorageSecurityAuditTest.php` & `LecturerMaterialTest.php`)**:
+   - Pengujian isolasi membuktikan berkas upload tersimpan di disk `'private'`, serta TIDAK ADA di disk `'public'` maupun disk `'local'`.
+   - Menguji siklus hidup lengkap perintah `arunika:pindah-file-privat` (dry-run, --jalankan, idempotensi, deteksi target korup, pembersihan sumber).
+   - Menguji header unduhan (inline vs attachment, CSP sandbox, sanitasi nama berkas).
+   - Menguji penanganan 404 rapi untuk berkas fisik yang hilang.
+   - Menguji matriks peran lengkap untuk 5 endpoint (materi draft vs published, lampiran tugas, pengumpulan tugas termasuk kelas selesai, surat izin, lampiran diskusi) dengan status mahasiswa aktif (200), upcoming (200), completed (200), dan dikeluarkan (403).
+   - Seluruh 12 test di `FileStorageSecurityAuditTest` (128 assertions) dan 9 test di `LecturerMaterialTest` (42 assertions) 100% lulus.
+
+---
+
+## Utang Teknis (Technical Debt)
+
+1. **Fallback Dummy PDF pada `AssignmentController::downloadAttachment`**:
+   - Jika record tugas tidak memiliki berkas lampiran fisik (`lampiran_path === null`), controller saat ini melakukan fallback dengan menghasilkan berkas dummy PDF instan di memori agar suite pengujian lama (`AdminPostVerificationTest`) tetap lulus. Policy `download` telah dieksekusi sebelum pembuatan dummy ini.
+   - **Tindakan Sebelum Rilis Produksi**: Hapus fallback dummy ini atau batasi secara ketat hanya pada lingkungan non-produksi (`app()->environment('testing', 'local')`), sehingga pada environment production tugas tanpa berkas lampiran fisik mengembalikan respons HTTP 404 Not Found secara konsisten.

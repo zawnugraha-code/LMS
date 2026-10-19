@@ -125,7 +125,7 @@ class AttendanceController extends Controller
             'meeting_id' => 'required|integer',
             'type' => 'required|string|in:izin,sakit',
             'reason' => 'required|string|max:1000',
-            'document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'document' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,zip,jpg,jpeg,png|max:10240',
         ]);
 
         $user = Auth::user();

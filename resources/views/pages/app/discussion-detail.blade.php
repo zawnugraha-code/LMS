@@ -186,7 +186,7 @@
                                 <span class="text-text font-medium truncate">{{ basename($thread->attachment_path) }}</span>
                             </div>
                             <a 
-                                href="{{ asset('storage/' . $thread->attachment_path) }}" 
+                                href="{{ route('berkas.diskusi', $thread) }}" 
                                 target="_blank"
                                 class="px-3 py-1 rounded-[6px] bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-semibold inline-flex items-center gap-1 transition-colors"
                             >

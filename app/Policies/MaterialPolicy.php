@@ -53,4 +53,34 @@ class MaterialPolicy
         return $user->role === UserRole::Lecturer &&
             ($class?->lecturer_id === $user->id || $material->uploaded_by === $user->id);
     }
+
+    /**
+     * Determine whether the user can download the material file.
+     */
+    public function download(User $user, Material $material): bool
+    {
+        if ($user->role === UserRole::Admin) {
+            return true;
+        }
+
+        $class = $material->academicClass ?? $material->meeting?->academicClass;
+
+        if ($user->role === UserRole::Lecturer) {
+            return $class?->lecturer_id === $user->id || $material->uploaded_by === $user->id;
+        }
+
+        if ($user->role === UserRole::Student) {
+            if ($material->status !== 'published') {
+                return false;
+            }
+
+            if (! ($material->is_downloadable ?? true)) {
+                return false;
+            }
+
+            return $class?->enrollments()->where('user_id', $user->id)->accessible()->exists() ?? false;
+        }
+
+        return false;
+    }
 }

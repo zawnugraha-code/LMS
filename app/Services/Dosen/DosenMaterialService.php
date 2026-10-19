@@ -167,7 +167,7 @@ class DosenMaterialService
         $filePath = null;
         if ($file) {
             $fileName = Str::slug($data['title']).'-'.time().'.'.$file->getClientOriginalExtension();
-            $filePath = $file->storeAs('materials', $fileName, 'public');
+            $filePath = $file->storeAs('materials', $fileName, 'private');
         } elseif (! empty($data['file_path'])) {
             $filePath = $data['file_path'];
         }
@@ -223,11 +223,13 @@ class DosenMaterialService
 
         // Handle replacement file
         if ($file) {
-            if ($material->file_path && Storage::disk('public')->exists($material->file_path)) {
+            if ($material->file_path && Storage::disk('private')->exists($material->file_path)) {
+                Storage::disk('private')->delete($material->file_path);
+            } elseif ($material->file_path && Storage::disk('public')->exists($material->file_path)) {
                 Storage::disk('public')->delete($material->file_path);
             }
             $fileName = Str::slug($updates['title']).'-'.time().'.'.$file->getClientOriginalExtension();
-            $updates['file_path'] = $file->storeAs('materials', $fileName, 'public');
+            $updates['file_path'] = $file->storeAs('materials', $fileName, 'private');
         }
 
         $material->update($updates);
@@ -251,7 +253,9 @@ class DosenMaterialService
      */
     public function deleteMaterial(Material $material): bool
     {
-        if ($material->file_path && Storage::disk('public')->exists($material->file_path)) {
+        if ($material->file_path && Storage::disk('private')->exists($material->file_path)) {
+            Storage::disk('private')->delete($material->file_path);
+        } elseif ($material->file_path && Storage::disk('public')->exists($material->file_path)) {
             Storage::disk('public')->delete($material->file_path);
         }
 

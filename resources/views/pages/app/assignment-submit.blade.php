@@ -140,7 +140,10 @@
                         @if($submission->file_path)
                             <div class="flex items-center justify-between">
                                 <span class="text-text-muted">Berkas Terlampir:</span>
-                                <span class="font-semibold text-[#2563EB] truncate max-w-xs">{{ basename($submission->file_path) }}</span>
+                                <a href="{{ route('berkas.pengumpulan', $submission) }}" target="_blank" class="font-semibold text-[#2563EB] hover:underline truncate max-w-xs inline-flex items-center gap-1" title="Unduh Berkas Saya">
+                                    <x-icon name="paperclip" :size="12" />
+                                    <span class="truncate">{{ basename($submission->file_path) }}</span>
+                                </a>
                             </div>
                         @endif
                         @if($submission->score !== null)

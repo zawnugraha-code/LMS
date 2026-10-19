@@ -110,7 +110,7 @@ class DiscussionService
         return DB::transaction(function () use ($user, $data, $attachment) {
             $attachmentPath = null;
             if ($attachment) {
-                $attachmentPath = $attachment->store('discussions', 'public');
+                $attachmentPath = $attachment->store('discussions', 'private');
             }
 
             $thread = DiscussionThread::create([

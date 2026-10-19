@@ -52,6 +52,31 @@ class SubmissionPolicy
      */
     public function download(User $user, Submission $submission): bool
     {
-        return $this->view($user, $submission);
+        // Admin (role from /admin middleware)
+        if ($user->role === UserRole::Admin) {
+            return true;
+        }
+
+        // Submitting student
+        if ($submission->user_id === $user->id) {
+            $enrollment = $submission->assignment?->academicClass?->enrollments()
+                ->where('user_id', $user->id)
+                ->first();
+
+            // Expelled student cannot download
+            if ($enrollment && $enrollment->isDikeluarkan()) {
+                return false;
+            }
+
+            return true;
+        }
+
+        // Class lecturer
+        $lecturerId = $submission->assignment?->academicClass?->lecturer_id ?? $submission->assignment?->dosen_id;
+        if ($user->role === UserRole::Lecturer && $lecturerId === $user->id) {
+            return true;
+        }
+
+        return false;
     }
 }

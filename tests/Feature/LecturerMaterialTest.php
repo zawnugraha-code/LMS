@@ -64,6 +64,7 @@ class LecturerMaterialTest extends TestCase
 
     public function test_lecturer_can_upload_new_material(): void
     {
+        Storage::fake('private');
         Storage::fake('public');
 
         $dosen = User::where('email', 'dosen@arunika.test')->firstOrFail();
@@ -88,7 +89,8 @@ class LecturerMaterialTest extends TestCase
         $this->assertEquals('published', $material->status);
         $this->assertEquals($dosen->id, $material->uploaded_by);
         $this->assertNotNull($material->file_path);
-        Storage::disk('public')->assertExists($material->file_path);
+        Storage::disk('private')->assertExists($material->file_path);
+        Storage::disk('public')->assertMissing($material->file_path);
     }
 
     public function test_draft_material_is_hidden_from_student_and_blocked_on_direct_access(): void

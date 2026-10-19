@@ -141,8 +141,7 @@
                                 <span>Dokumen Modul Kuliah (PDF)</span>
                             </div>
                             <a 
-                                href="{{ $material->file_path ? asset($material->file_path) : '#' }}" 
-                                download 
+                                href="{{ $material->file_path ? route('berkas.materi', $material) : '#' }}" 
                                 class="inline-flex items-center gap-1.5 text-xs text-[#2563EB] hover:underline font-semibold"
                             >
                                 <x-icon name="download" :size="14" />

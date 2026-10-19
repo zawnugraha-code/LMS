@@ -301,7 +301,7 @@
                                         <div class="flex items-center gap-1.5 self-end sm:self-center shrink-0">
                                             @if ($mat->file_path)
                                                 <a 
-                                                    href="{{ asset('storage/' . $mat->file_path) }}" 
+                                                    href="{{ route('berkas.materi', $mat) }}" 
                                                     target="_blank" 
                                                     class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-text-muted hover:text-text bg-surface hover:bg-slate-100 border border-line rounded-[6px] transition-colors"
                                                     title="Unduh / Lihat Berkas"

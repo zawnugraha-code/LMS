@@ -24,6 +24,13 @@ return [
         'max_rows' => 1000,
     ],
 
+    // Konfigurasi Penyimpanan Berkas Privat
+    'storage' => [
+        'disk' => 'private',
+        'import_path' => 'imports',
+        'export_path' => 'exports',
+    ],
+
     // Demo Role Switcher Flag (Hanya diizinkan di non-production)
     'demo_role_switcher_enabled' => env('DEMO_ROLE_SWITCHER_ENABLED', false),
 ];

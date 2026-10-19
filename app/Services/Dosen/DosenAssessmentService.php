@@ -140,7 +140,7 @@ class DosenAssessmentService
 
         $lampiranPath = null;
         if (isset($data['lampiran']) && $data['lampiran'] instanceof UploadedFile) {
-            $lampiranPath = $data['lampiran']->store('assessments', 'public');
+            $lampiranPath = $data['lampiran']->store('assessments', 'private');
         }
 
         $assignment = Assignment::create([
@@ -185,10 +185,12 @@ class DosenAssessmentService
         }
 
         if (isset($data['lampiran']) && $data['lampiran'] instanceof UploadedFile) {
-            if ($assignment->lampiran_path && Storage::disk('public')->exists($assignment->lampiran_path)) {
+            if ($assignment->lampiran_path && Storage::disk('private')->exists($assignment->lampiran_path)) {
+                Storage::disk('private')->delete($assignment->lampiran_path);
+            } elseif ($assignment->lampiran_path && Storage::disk('public')->exists($assignment->lampiran_path)) {
                 Storage::disk('public')->delete($assignment->lampiran_path);
             }
-            $assignment->lampiran_path = $data['lampiran']->store('assessments', 'public');
+            $assignment->lampiran_path = $data['lampiran']->store('assessments', 'private');
         }
 
         $assignment->update([

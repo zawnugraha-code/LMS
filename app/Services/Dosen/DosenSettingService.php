@@ -172,8 +172,8 @@ class DosenSettingService
         $attachmentPath = null;
         if ($attachment) {
             $filename = 'ticket_'.$lecturer->id.'_'.time().'.'.$attachment->getClientOriginalExtension();
-            $path = $attachment->storeAs('support', $filename, 'public');
-            $attachmentPath = '/storage/'.$path;
+            $path = $attachment->storeAs('support', $filename, 'private');
+            $attachmentPath = $path;
         }
 
         return SupportTicket::create([

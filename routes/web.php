@@ -27,6 +27,7 @@ use App\Http\Controllers\Dosen\DosenSettingController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PrivateFileController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingController;
@@ -126,6 +127,15 @@ Route::middleware(['web', 'auth'])->group(function () {
 
         return redirect()->back()->with('success', 'Semester aktif berhasil diubah.');
     })->name('app.term.switch');
+
+    // Berkas Privat (Netral untuk Mahasiswa, Dosen, dan Admin - Proteksi Auth + Policy)
+    Route::prefix('berkas')->group(function () {
+        Route::get('/materi/{material}', [PrivateFileController::class, 'downloadMaterial'])->name('berkas.materi');
+        Route::get('/tugas/{assignment}', [PrivateFileController::class, 'downloadAssignment'])->name('berkas.tugas');
+        Route::get('/pengumpulan/{submission}', [PrivateFileController::class, 'downloadSubmission'])->name('berkas.pengumpulan');
+        Route::get('/izin/{log}', [PrivateFileController::class, 'downloadPermit'])->name('berkas.izin');
+        Route::get('/diskusi/{thread}', [PrivateFileController::class, 'downloadDiscussion'])->name('berkas.diskusi');
+    });
 
     // 7. Academic Actions
     Route::prefix('/app')->group(function () {

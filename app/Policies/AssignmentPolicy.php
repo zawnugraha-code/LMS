@@ -100,4 +100,41 @@ class AssignmentPolicy
 
         return false;
     }
+
+    /**
+     * Determine whether the user can download the assignment attachment file.
+     */
+    public function download(User $user, Assignment $assignment): bool
+    {
+        // Admin
+        if ($user->role === UserRole::Admin) {
+            return true;
+        }
+
+        // Dosen pengampu kelas
+        if ($user->role === UserRole::Lecturer) {
+            $lecturerId = $assignment->academicClass?->lecturer_id ?? $assignment->dosen_id;
+            return $lecturerId === $user->id;
+        }
+
+        // Mahasiswa: Hanya boleh membuka jika tugas telah dipublikasikan
+        if ($user->role === UserRole::Student) {
+            // Belum dipublikasikan (draft atau terjadwal) dilarang dibuka mahasiswa
+            if ($assignment->status !== 'dipublikasikan') {
+                return false;
+            }
+
+            if ($assignment->publish_at && $assignment->publish_at->isFuture()) {
+                return false;
+            }
+
+            // Mahasiswa berhak jika enrollment accessible (aktif, completed, upcoming)
+            return $assignment->academicClass?->enrollments()
+                ->where('user_id', $user->id)
+                ->accessible()
+                ->exists() ?? false;
+        }
+
+        return false;
+    }
 }

@@ -48,7 +48,7 @@ class SettingController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'phone' => ['nullable', 'string', 'max:30'],
-            'avatar' => ['nullable', 'image', 'max:2048'],
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
         ]);
 
         $avatarFile = $request->file('avatar');
@@ -150,7 +150,7 @@ class SettingController extends Controller
             'subject' => ['required', 'string', 'max:255'],
             'category' => ['required', 'string', 'max:50'],
             'message' => ['required', 'string', 'max:5000'],
-            'attachment' => ['nullable', 'file', 'max:10240'],
+            'attachment' => ['nullable', 'file', 'mimes:pdf,doc,docx,ppt,pptx,zip,jpg,jpeg,png', 'max:10240'],
         ]);
 
         $ticket = $this->settingService->createSupportTicket(

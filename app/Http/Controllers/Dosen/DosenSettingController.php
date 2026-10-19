@@ -41,7 +41,7 @@ class DosenSettingController extends Controller
             'identifier' => 'nullable|string|max:50',
             'jabatan' => 'nullable|string|max:100',
             'prodi' => 'nullable|string|max:150',
-            'avatar' => 'nullable|image|max:2048',
+            'avatar' => 'nullable|image|mimes:jpg,jpeg,png|max:10240',
         ]);
 
         $this->settingService->updateProfile($lecturer, $validated, $request->file('avatar'));
@@ -108,7 +108,7 @@ class DosenSettingController extends Controller
             'subject' => 'required|string|max:255',
             'category' => 'required|string|in:teknis,akademik,fasilitas,lainnya',
             'message' => 'required|string',
-            'attachment' => 'nullable|file|max:5120',
+            'attachment' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,zip,jpg,jpeg,png|max:10240',
         ]);
 
         $this->settingService->submitSupportTicket($lecturer, $validated, $request->file('attachment'));
